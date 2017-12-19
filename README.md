@@ -7,3 +7,8 @@ A Total of 4 teams will be attempting to solve this problem.
 Project Team information is available at [this location](https://docs.google.com/spreadsheets/d/1KlALHhSs0u8uGtZSi3p62APzto7rEsPJ4RbjXQn5lRQ/edit#gid=0). 
 
 Deadlines for various project milestones will be posted on the [course schedule page](https://www.rose-hulman.edu/class/csse/csse490WebServicesDev/201820/Schedule/Schedule.htm).
+
+# Endpoints
+
+`GET` /terms
+`GET` /students
