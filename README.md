@@ -10,5 +10,5 @@ Deadlines for various project milestones will be posted on the [course schedule 
 
 # Endpoints
 
-`GET` /terms
-`GET` /students
+`GET` /terms  
+`GET` /students  
