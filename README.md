@@ -10,5 +10,11 @@ Deadlines for various project milestones will be posted on the [course schedule 
 
 # Endpoints
 
-`GET` /terms  
-`GET` /students  
+1. `GET` /terms/:name:/courses/:roseId:/students  
+2. `GET` /students/:name:/courses/:roseId:/students  
+3. `GET` /students/:username:
+4. `GET` /students/:username:/courses/:term:
+5. `GET` /students/:username:/courses
+6. `GET` /students/:username:/eval
+7. `GET` /studnets/courses/:roseId:
+8. `GET` /students/courses/:roseId:/not-taken
