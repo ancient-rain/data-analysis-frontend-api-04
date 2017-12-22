@@ -10,23 +10,13 @@ Deadlines for various project milestones will be posted on the [course schedule 
 
 # Endpoints
 
-1. `GET` /terms/:name:/courses/:roseId:/students  
-2. `GET` /students/:name:/courses/:roseId:/students  
-3. `GET` /students/:username:
-4. `GET` /students/:username:/courses/:term:
-5. ~~`GET` /students/:username:/courses~~
-6. ~~`GET` /students/:username:/eval~~
-7. `GET` /students/courses/:roseId:
-8. `GET` /students/courses/:roseId:/not-taken
-
-
 ## Show Students in a Class for Given Term
 
 Displays the list of students enrolled in a class for a current term     
 
 * **URL**
 
-    /:term/students/course/:name
+    `/:term/students/course/:name`
 
 * **Method:**
 
@@ -70,7 +60,7 @@ Displays the student's course schedule for the provided term
 
 * **URL**
 
-    /:term/student/:username
+    `/:term/student/:username`
 
 * **Method:**
 
@@ -108,7 +98,7 @@ Displays the list of students who have already taken or are taking a class
 
 * **URL**
 
-    /course/:name/students
+    `/course/:name/students`
 
 * **Method:**
 
@@ -146,7 +136,7 @@ Displays the list of students who have not taken a course
 
 * **URL**
 
-    /course/:name/students/not-taken
+    `/course/:name/students/not-taken`
 
 * **Method:**
 
@@ -184,7 +174,7 @@ Displays the list of students with a given year or years enrolled in a class
 
 * **URL**
 
-    /courses/:name/students/:year
+    `/courses/:name/students/:year`
 
 * **Method:**
 
@@ -236,7 +226,7 @@ Displays the list of students with a given year or years who have not taken a cl
 
 * **URL**
 
-    /courses/:name/students/not-taken/:year
+    `/courses/:name/students/not-taken/:year`
 
 * **Method:**
 
@@ -288,7 +278,7 @@ Displays a factulty's advisees for a given term
 
 * **URL**
 
-    /:term/faculty/:username/advisees
+    `/:term/faculty/:username/advisees`
 
 * **Method:**
 
@@ -331,7 +321,7 @@ Displays a single factulty's advisee for a given term
 
 * **URL**
 
-    /:term/faculty/:fusername/advisee/:susername
+    `/:term/faculty/:fusername/advisee/:susername`
 
 * **Method:**
 
