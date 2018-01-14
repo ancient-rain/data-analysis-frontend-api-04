@@ -1,76 +1,92 @@
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
-// const Term = require('../models/models');
-const Term = require('../models/term');
 const STUDENT = mongoose.model('Student');
 
+const YEARS = ['Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'YGR'];
+
 router.get('/:term/student/:username', function (req, res) {
-        const username = req.params.username.toUpperCase();
-        const term = req.params.term;
-        console.log(term, username);
+    const term = req.params.term;
+    const username = req.params.username.toUpperCase();
+
+    STUDENT.find({
+        $and: [{
+            username: username
+        }, {
+            term: term
+        }]
+    }, (err, student) => {
+        if (err) {
+            console.log(err);
+        } else {
+            res.status(200);
+            res.json(student);
+        }
+    });
+});
+
+router.route('/courses/:name/students')
+    .get((req, res) => {
+        const name = req.params.name.toUpperCase();
+        const regex = new RegExp('.*' + name + '.*');
+
         STUDENT.find({
-            $and: [{
-                username: username
-            }, {
-                term: term
-            }]
-        }, (err, student) => {
+            courses: {
+                $in: [regex]
+            }
+        }, (err, students) => {
             if (err) {
                 console.log(err);
             } else {
-                res.json(student);
+                res.status(200);
+                res.json(students);
             }
         });
     });
 
-router.route('/courses/:name/students')
+    router.route('/courses/:name/students/:year')
     .get((req, res) => {
-        db.term.aggregate([{
-                $project: {
-                    "course": "$students.courses"
-                }
-            },
-            {
-                $unwind: "$course"
-            },
-            {
-                $project: {
-                    student: {
-                        $filter: {
-                            input: "$course",
-                            as: "course",
-                            cond: {
-                                "$setIsSubset": [
-                                    ["MA211-05"],
-                                    ["$$course.name"]
-                                ]
-                            }
-                        }
-                    }
-                }
+        const name = req.params.name.toUpperCase();
+        const year = req.params.year;
+        const regex = new RegExp('.*' + name + '.*');
+
+        STUDENT.find({
+            courses: {
+                $in: [regex]
             }
-        ]);
+        }, (err, students) => {
+            if (err) {
+                console.log(err);
+            } else {
+                res.status(200);
+                res.json(students);
+            }
+        });
     });
 
 
 router.route('/courses/:name/students/not-taken')
     .get((req, res) => {
-        Term.find({
-            "courses.name": req.params.name
-        }, {
-            "student.username": req.params.username
-        }, (err, student) => {
+        const name = req.params.name.toUpperCase();
+        const regex = new RegExp('.*' + name + '.*');
+
+        STUDENT.find({
+            $and: [{
+                    type: 'Student'
+                }, {
+                    courses: {
+                        $nin: [regex]
+                    }
+                }
+            ]
+        }, (err, students) => {
             if (err) {
-                res.status(404);
-                res.json({
-                    success: false,
-                    message: "Invalid term name or student name"
-                });
+                console.log(err);
             } else {
-                res.json(student);
+                res.status(200);
+                res.json(students);
             }
         });
     });
 
-    module.exports = router;
+module.exports = router;
