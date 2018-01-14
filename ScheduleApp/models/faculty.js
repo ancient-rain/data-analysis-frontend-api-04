@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const studentSchema = new mongoose.Schema({
+const facultySchema = mongoose.Schema({
     type: {
         type: String
     },
@@ -13,23 +13,16 @@ const studentSchema = new mongoose.Schema({
     name: {
         type: String
     },
-    year: {
+    dpet: {
         type: String
     },
-    majors: {
-        type: [String]
-    },
-    minors: {
-        type: [String]
-    },
-    graduationDate: {
-        type: String
-    },
-    courses: {
+    advisees: {
         type: [String]
     }
 }, {
     collection: 'lookup'
 });
 
-module.exports = mongoose.model('Student', studentSchema);
+const Faculty = mongoose.model('Faculty', facultySchema);
+
+module.export = Faculty;

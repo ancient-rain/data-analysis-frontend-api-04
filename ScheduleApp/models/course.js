@@ -1,13 +1,29 @@
 const mongoose = require('mongoose');
 
 const courseSchema = new mongoose.Schema({
-    type: String,
-    name: String,
-    term: String,
-    description: String,
-    creditHours: String,
-    meetTimes: String,
-    instructor: String
+    type: {
+        type: String
+    },
+    name: {
+        type: String
+    },
+    term: {
+        type: String
+    },
+    description: {
+        type: String
+    },
+    creditHours: {
+        type: String
+    },
+    meetTimes: {
+        type: String
+    },
+    instructor: {
+        type: String
+    }
+}, {
+    collection: 'lookup'
 });
 
 const Course = mongoose.model('Course', courseSchema);
