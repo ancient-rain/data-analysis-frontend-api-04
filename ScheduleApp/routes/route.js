@@ -53,7 +53,7 @@ function checkFilter(yearFilter) {
 
 }
 
-router.get('/:term/students/course/:name', function (req, res) {
+router.get('/course/:name/:term/students', function (req, res) {
     const term = req.params.term;
     const course = req.params.name;
     const regex = new RegExp('.*' + course + '.*');
@@ -62,7 +62,7 @@ router.get('/:term/students/course/:name', function (req, res) {
         $and: [{
             term: term
         }, {
-            type: 'Student' 
+            type: 'Student'
         }, {
             courses: {
                 $in: [regex]
@@ -78,7 +78,7 @@ router.get('/:term/students/course/:name', function (req, res) {
     });
 });
 
-router.get('/:term/student/:username', function (req, res) {
+router.get('/student/:username/:term', function (req, res) {
     const term = req.params.term;
     const username = req.params.username.toUpperCase();
 
@@ -117,32 +117,7 @@ router.route('/courses/:name/students')
         });
     });
 
-/*  TODO: Find the names of the students who are in :name course that are
-    in :year durng the :term term.
-*/
-router.route('/courses/:name/students/:year/:term')
-    .get((req, res) => {
-        const name = req.params.name.toUpperCase();
-        const course = new RegExp('.*' + name + '.*');
-        const year = getYear(req.params.year);
-        const filter = checkFilter(req.params.year);
-        const term = req.params.term;
-
-        STUDENT.find({
-            courses: {
-                $in: [course]
-            }
-        }, (err, students) => {
-            if (err) {
-                console.log(err);
-            } else {
-                res.status(200);
-                res.json(students);
-            }
-        });
-    });
-
-/* TODO: filter out students who have taken the class */
+/* TODO: Filter out usernames that have taken the course already */
 router.route('/courses/:name/students/not-taken')
     .get((req, res) => {
         const name = req.params.name.toUpperCase();
@@ -165,5 +140,39 @@ router.route('/courses/:name/students/not-taken')
             }
         });
     });
+
+router.route('/courses/:name/students/:year/:term')
+    .get((req, res) => {
+        const name = req.params.name.toUpperCase();
+        const course = new RegExp('.*' + name + '.*');
+        const year = getYear(req.params.year);
+        const filter = checkFilter(req.params.year);
+        const term = req.params.term;
+
+        STUDENT.find({
+            courses: {
+                $in: [course]
+            }
+        }, (err, students) => {
+            if (err) {
+                console.log(err);
+            } else {
+                res.status(200);
+                res.json(students);
+            }
+        });
+    });
+
+router.route('/groups/:term/:usernames').get((req, res) => {
+
+});
+
+router.route('/faculty/:term/:username/advisees').get((req, res) => {
+
+});
+
+router.route('/faculty/student/:username/:courses').get((req, res) => {
+
+});
 
 module.exports = router;
