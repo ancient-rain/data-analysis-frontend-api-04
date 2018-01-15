@@ -14,7 +14,7 @@ const studentSchema = new mongoose.Schema({
         type: String
     },
     year: {
-        type: String
+        type: Number
     },
     majors: {
         type: [String]
