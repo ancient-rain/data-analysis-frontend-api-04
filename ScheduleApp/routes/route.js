@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const STUDENT = mongoose.model('Student');
+const FACULTY = mongoose.model("Faculty");
 
 const YEARS = ['Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'YGR'];
 
@@ -168,11 +169,50 @@ router.route('/groups/:term/:usernames').get((req, res) => {
 });
 
 router.route('/faculty/:term/:username/advisees').get((req, res) => {
+    FACULTY.find({
+        $and: [{
+            username: req.params.username.toUpperCase()
+        },
+        {
+            term: req.params.term
+
+        }]
+    }).select("advisees")
+        .exec((err, advisees) => {
+            if (err) {
+                console.log(err);
+            } else {
+                res.status(200);
+                res.json(advisees);
+            }
+        });
 
 });
 
-router.route('/faculty/student/:username/:courses').get((req, res) => {
+router.route('/faculty/student/:username/:course').get((req, res) => {
 
+    const name = req.params.course.toUpperCase();
+    const reg = new RegExp('.*' + name + '.*');
+
+    STUDENT.find({
+        $and: [{
+            username: req.params.username.toUpperCase()
+        },
+        {
+            courses: {
+                $in: [reg]
+            }
+
+        }]
+    })
+        .exec((err, course) => {
+            if (err) {
+                console.log(err);
+            } else {
+                res.status(200);
+                res.json(course);
+            }
+        });
 });
 
 module.exports = router;
