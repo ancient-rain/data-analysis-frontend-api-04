@@ -13,7 +13,7 @@
 
 [Show Faculty Advisees](#show-faculty-advisees)
 
-[Show Individual Factuly Advisee](#show-individual-factuly-advisee)
+[Show Individual Faculty Advisee](#show-individual-factuly-advisee)
 
 # Endpoint Information
 
