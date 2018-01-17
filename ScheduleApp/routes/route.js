@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const STUDENT = mongoose.model('Student');
+const COURSE = mongoose.model('Course');
 
 const YEARS = ['Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'YGR'];
 
@@ -81,6 +82,19 @@ router.get('/course/:name/:term/students', function (req, res) {
 router.get('/student/:username/:term', function (req, res) {
     const term = req.params.term;
     const username = req.params.username.toUpperCase();
+    let result = {
+        studentId: "",
+        type: "",
+        term: "",
+        username: "",
+        name: "",
+        year: "",
+        graduationDate: "",
+        courses: [],
+        minors: [],
+        majors: []
+    };
+    // db.lookup.aggregate([{$match:{$and:[{term:"201630"},{username:"BEDNARTD"}]}},{$lookup:{from:"lookup",localField:"_id",foreignField:"_id",as:"courseData"}}])
 
     STUDENT.find({
         $and: [{
@@ -92,11 +106,62 @@ router.get('/student/:username/:term', function (req, res) {
         if (err) {
             console.log(err);
         } else {
+            const index = student[0];
+
+            result.studentId = index._id;
+            result.type = index.type;
+            result.term = index.term;
+            result.username = index.username;
+            result.name = index.name;
+            result.year = index.year;
+            result.graduationDate = index.graduationDate;
+            result.minors = index.minors;
+            result.majors = index.majors;
+
+            for (let i = 0; i < index.courses.length; i++) {
+                const courseRegex = new RegExp('.*' + index.courses[i] + '.*');
+                const course = setTimeout(function () {
+                    findStudentCourse(courseRegex)
+                }, 2000);
+                console.log(course);
+                // if (course) {
+                //     result.courses.push(course);
+                // } else {
+                //     console.log(err);
+                //     res.status(400);
+                //     return;
+                // }
+            }
+
             res.status(200);
             res.json(student);
         }
     });
 });
+
+function findStudentCourse(regex) {
+    let course;
+    // console.log('course outside of if', course);
+    console.log('starting');
+    COURSE.find({
+        $and: [{
+            type: 'Course'
+        }, {
+            name: regex
+        }]
+    }, (err, foundCourse) => {
+        // console.log('course', foundCourse);
+        if (err) {
+            console.log(err);
+        } else {
+            course = foundCourse;
+            // return foundCourse;
+            // console.log('course inside if', course);
+        }
+    });
+    console.log('ending');
+    return course;
+}
 
 router.route('/courses/:name/students')
     .get((req, res) => {
