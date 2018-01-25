@@ -3,7 +3,7 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const STUDENT = mongoose.model('Student');
 const FACULTY = mongoose.model("Faculty");
-
+const COURSE = mongoose.model('Course');
 const YEARS = ['Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'YGR'];
 
 function parseYear(year) {
@@ -118,20 +118,27 @@ router.get('/student/:username/:term', function (req, res) {
             result.minors = index.minors;
             result.majors = index.majors;
 
-            for (let i = 0; i < index.courses.length; i++) {
-                const courseRegex = new RegExp('.*' + index.courses[i] + '.*');
-                const course = setTimeout(function () {
-                    findStudentCourse(courseRegex)
-                }, 2000);
-                console.log(course);
-                // if (course) {
-                //     result.courses.push(course);
-                // } else {
-                //     console.log(err);
-                //     res.status(400);
-                //     return;
-                // }
-            }
+            // for (let i = 0; i < index.courses.length; i++) {
+            //     const courseRegex = new RegExp('.*' + index.courses[i] + '.*');
+            //     const course = setTimeout(function () {
+            //         findStudentCourse(courseRegex)
+            //     }, 2000);
+            //     console.log(course);
+            //     // if (course) {
+            //     //     result.courses.push(course);
+            //     // } else {
+            //     //     console.log(err);
+            //     //     res.status(400);
+            //     //     return;
+            //     // }
+            // }
+
+            // COURSE.find({type: 'Course'}, (err, course) => {
+
+            // }).forEach(function (course) {
+            //     console.log(course.name);
+            // });
+
 
             res.status(200);
             res.json(student);
@@ -234,14 +241,15 @@ router.route('/groups/:term/:usernames').get((req, res) => {
 
 router.route('/faculty/:term/:username/advisees').get((req, res) => {
     FACULTY.find({
-        $and: [{
-            username: req.params.username.toUpperCase()
-        },
-        {
-            term: req.params.term
+            $and: [{
+                    username: req.params.username.toUpperCase()
+                },
+                {
+                    term: req.params.term
 
-        }]
-    }).select("advisees")
+                }
+            ]
+        }).select("advisees")
         .exec((err, advisees) => {
             if (err) {
                 console.log(err);
@@ -259,16 +267,17 @@ router.route('/faculty/student/:username/:course').get((req, res) => {
     const reg = new RegExp('.*' + name + '.*');
 
     STUDENT.find({
-        $and: [{
-            username: req.params.username.toUpperCase()
-        },
-        {
-            courses: {
-                $in: [reg]
-            }
+            $and: [{
+                    username: req.params.username.toUpperCase()
+                },
+                {
+                    courses: {
+                        $in: [reg]
+                    }
 
-        }]
-    })
+                }
+            ]
+        })
         .exec((err, course) => {
             if (err) {
                 console.log(err);
@@ -277,6 +286,30 @@ router.route('/faculty/student/:username/:course').get((req, res) => {
                 res.json(course);
             }
         });
+});
+
+router.route('/faculty/:username/:term').get((req, res) => {
+    const username = req.params.username.toUpperCase();
+    const term = req.params.term;
+
+    COURSE.find({
+        $and: [{
+            instructor: username
+        }, {
+            term: term
+        }]
+    }, (err, faculty) => {
+        if (err) {
+            console.log(err);
+        } else {
+            res.status(200);
+            res.json(faculty);
+        }
+    });
+});
+
+router.route('/faculty/:username').get((req, res) => {
+
 });
 
 module.exports = router;
