@@ -371,3 +371,84 @@ Displays a single factulty's advisee for a given term
     Get bednartd's infromation as defoe for the 201710 term
 
     `url: "/201710/faculty/defoe/advisee/bednartd"`
+
+
+## Show a term's information
+
+Displays the information for the given term    
+
+* **URL**
+
+    `/term/:term`
+
+* **Method:**
+
+    `GET`
+  
+*  **URL Params**
+
+    **Required:**
+ 
+    `term = String`
+
+* **Data Params**
+
+    None
+
+* **Success Response:**
+
+    * **Code:** 200 <br />
+      **Content:** `{ sucess: true }`
+ 
+* **Error Response:**
+
+    * **Code:** 404 NOT FOUND <br />
+      **Content:** `{ error : "Term doesn't exist!" }`
+
+* **Sample Call:**
+
+    Get the 201710 term
+    
+    `url: "/term/201710"`
+
+
+## Show info of all classes of a given course in a given term
+
+Displays the information of all classes of a given course in a given term
+
+* **URL**
+
+    `/courses/:name/:term`
+
+* **Method:**
+
+    `GET`
+  
+*  **URL Params**
+
+    **Required:**
+    
+    `name = String`
+    `term = String`
+
+* **Data Params**
+
+    None
+
+* **Success Response:**
+
+    * **Code:** 200 <br />
+      **Content:** `{ sucess: true }`
+ 
+* **Error Response:**
+
+    * **Code:** 404 NOT FOUND <br />
+      **Content:** `{ error : "Course doesn't exist!" }`
+
+* **Sample Call:**
+
+    Get all classes and their info of a given course in a given term
+    
+    `url: "/courses/CSSE120/201710"`
+
+    
