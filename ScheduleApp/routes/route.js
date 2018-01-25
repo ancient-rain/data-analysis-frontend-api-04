@@ -309,7 +309,18 @@ router.route('/faculty/:username/:term').get((req, res) => {
 });
 
 router.route('/faculty/:username').get((req, res) => {
+    const username = req.params.username.toUpperCase();
 
+    COURSE.find({
+        instructor: username
+    }, (err, faculty) => {
+        if (err) {
+            console.log(err);
+        } else {
+            res.status(200);
+            res.json(faculty);
+        }
+    });
 });
 
 module.exports = router;
