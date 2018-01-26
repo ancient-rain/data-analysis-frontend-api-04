@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const STUDENT = mongoose.model('Student');
 const FACULTY = mongoose.model("Faculty");
 const TERM = mongoose.model("Term");
+const COURSE = mongoose.model("Course");
 
 const YEARS = ['Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'YGR'];
 
@@ -299,5 +300,28 @@ router.route('/term/:term').get((req, res) => {
         }
     });
 });
+
+router.route('/courses/:name/:term')
+    .get((req, res) => {
+        const name = req.params.name.toUpperCase();
+        const course = new RegExp('.*' + name + '.*');
+        const term = req.params.term;
+
+        COURSE.find({
+            $and: [{
+                name: course
+            },
+            {
+                term: term
+            }]
+        }, (err, course) => {
+            if (err) {
+                console.log(err);
+            } else {
+                res.status(200);
+                res.json(course);
+            }
+        });
+    });
 
 module.exports = router;
