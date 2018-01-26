@@ -3,6 +3,7 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const STUDENT = mongoose.model('Student');
 const FACULTY = mongoose.model("Faculty");
+const TERM = mongoose.model("Term");
 const COURSE = mongoose.model("Course");
 
 const YEARS = ['Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'YGR'];
@@ -278,6 +279,26 @@ router.route('/faculty/student/:username/:course').get((req, res) => {
                 res.json(course);
             }
         });
+});
+
+router.route('/term/:term').get((req, res) => {
+
+    TERM.find({
+        $and:
+            [{
+                term: req.params.term
+            },
+            {
+                type: "Term Info"
+            }]
+    }, (err, term) => {
+        if (err) {
+            console.log(err);
+        } else {
+            res.status(200);
+            res.json(term);
+        }
+    });
 });
 
 router.route('/courses/:name/:term')
