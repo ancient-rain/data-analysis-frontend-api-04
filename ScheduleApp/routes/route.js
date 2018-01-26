@@ -3,6 +3,7 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const STUDENT = mongoose.model('Student');
 const FACULTY = mongoose.model("Faculty");
+const COURSE = mongoose.model('Course');
 
 const YEARS = ['Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'YGR'];
 
