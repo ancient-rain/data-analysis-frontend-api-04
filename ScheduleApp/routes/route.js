@@ -84,86 +84,53 @@ router.get('/course/:name/:term/students', function (req, res) {
 router.get('/student/:username/:term', function (req, res) {
     const term = req.params.term;
     const username = req.params.username.toUpperCase();
-    let result = {
-        studentId: "",
-        type: "",
-        term: "",
-        username: "",
-        name: "",
-        year: "",
-        graduationDate: "",
-        courses: [],
-        minors: [],
-        majors: []
-    };
-    // db.lookup.aggregate([{$match:{$and:[{term:"201630"},{username:"BEDNARTD"}]}},{$lookup:{from:"lookup",localField:"_id",foreignField:"_id",as:"courseData"}}])
+    // db.lookup.aggregate({$match:{$and:[{term:"201630"},{username:"BEDNARTD"}]}},{$lookup:{from:"lookup",localField:"courses",foreignField:"name",as:"courseData"}}).pretty();
 
-    STUDENT.find({
-        $and: [{
-            username: username
+    STUDENT.aggregate([{
+            $match: {
+                $and: [{
+                    term: term
+                }, {
+                    username: username
+                }]
+            }
         }, {
-            term: term
-        }]
-    }, (err, student) => {
+            $lookup: {
+                from: "lookup",
+                localField: "courses",
+                foreignField: "name",
+                as: "courseData"
+            }
+        },
+        {
+            $project: {
+                term: 1,
+                username: 1,
+                name: 1,
+                year: 1,
+                graduationDate: 1,
+                minors: 1,
+                majors: 1,
+                courses: {
+                    $filter: {
+                        input: '$courseData',
+                        as: 'course',
+                        cond: {
+                            $eq: [ '$$course.term', '201710' ]
+                        }
+                    }
+                }
+            }
+        }
+    ], (err, student) => {
         if (err) {
             console.log(err);
         } else {
-            const index = student[0];
-
-            result.studentId = index._id;
-            result.type = index.type;
-            result.term = index.term;
-            result.username = index.username;
-            result.name = index.name;
-            result.year = index.year;
-            result.graduationDate = index.graduationDate;
-            result.minors = index.minors;
-            result.majors = index.majors;
-
-            for (let i = 0; i < index.courses.length; i++) {
-                const courseRegex = new RegExp('.*' + index.courses[i] + '.*');
-                const course = setTimeout(function () {
-                    findStudentCourse(courseRegex)
-                }, 2000);
-                console.log(course);
-                // if (course) {
-                //     result.courses.push(course);
-                // } else {
-                //     console.log(err);
-                //     res.status(400);
-                //     return;
-                // }
-            }
-
             res.status(200);
             res.json(student);
         }
     });
 });
-
-function findStudentCourse(regex) {
-    let course;
-    // console.log('course outside of if', course);
-    console.log('starting');
-    COURSE.find({
-        $and: [{
-            type: 'Course'
-        }, {
-            name: regex
-        }]
-    }, (err, foundCourse) => {
-        // console.log('course', foundCourse);
-        if (err) {
-            console.log(err);
-        } else {
-            course = foundCourse;
-            // return foundCourse;
-            // console.log('course inside if', course);
-        }
-    });
-    console.log('ending');
-    return course;
-}
 
 router.route('/courses/:name/students')
     .get((req, res) => {
@@ -262,14 +229,15 @@ router.route('/groups/:term/:usernames').get((req, res) => {
 
 router.route('/faculty/:term/:username/advisees').get((req, res) => {
     FACULTY.find({
-        $and: [{
-            username: req.params.username.toUpperCase()
-        },
-        {
-            term: req.params.term
+            $and: [{
+                    username: req.params.username.toUpperCase()
+                },
+                {
+                    term: req.params.term
 
-        }]
-    }).select("advisees")
+                }
+            ]
+        }).select("advisees")
         .exec((err, advisees) => {
             if (err) {
                 console.log(err);
@@ -287,16 +255,17 @@ router.route('/faculty/student/:username/:course').get((req, res) => {
     const reg = new RegExp('.*' + name + '.*');
 
     STUDENT.find({
-        $and: [{
-            username: req.params.username.toUpperCase()
-        },
-        {
-            courses: {
-                $in: [reg]
-            }
+            $and: [{
+                    username: req.params.username.toUpperCase()
+                },
+                {
+                    courses: {
+                        $in: [reg]
+                    }
 
-        }]
-    })
+                }
+            ]
+        })
         .exec((err, course) => {
             if (err) {
                 console.log(err);
@@ -310,13 +279,13 @@ router.route('/faculty/student/:username/:course').get((req, res) => {
 router.route('/term/:term').get((req, res) => {
 
     TERM.find({
-        $and:
-            [{
+        $and: [{
                 term: req.params.term
             },
             {
                 type: "Term Info"
-            }]
+            }
+        ]
     }, (err, term) => {
         if (err) {
             console.log(err);
@@ -335,11 +304,12 @@ router.route('/courses/:name/:term')
 
         COURSE.find({
             $and: [{
-                name: course
-            },
-            {
-                term: term
-            }]
+                    name: course
+                },
+                {
+                    term: term
+                }
+            ]
         }, (err, course) => {
             if (err) {
                 console.log(err);
