@@ -111,7 +111,7 @@ router.get('/student/:username/:term', function (req, res) {
                 graduationDate: 1,
                 minors: 1,
                 majors: 1,
-                courseData: {
+                courses: {
                     $filter: {
                         input: '$courseData',
                         as: 'course',
