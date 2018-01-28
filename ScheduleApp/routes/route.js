@@ -81,6 +81,21 @@ router.get('/course/:name/:term/students', function (req, res) {
     });
 });
 
+router.route('/student/:username').get((req, res) => {
+    const username = req.params.username.toUpperCase();
+
+    STUDENT.find({
+        username: username
+    }, (err, student) => {
+        if (err) {
+            console.log(err);
+        } else {
+            res.status(200);
+            res.json(student);
+        }
+    });
+});
+
 router.get('/student/:username/:term', function (req, res) {
     const term = req.params.term;
     const username = req.params.username.toUpperCase();
