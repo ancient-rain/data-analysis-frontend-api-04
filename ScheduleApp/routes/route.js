@@ -190,21 +190,47 @@ router.route('/courses/:name/students/not-taken')
         const name = req.params.name.toUpperCase();
         const regex = new RegExp('.*' + name + '.*');
 
-        STUDENT.find({
-            $and: [{
-                type: 'Student'
-            }, {
-                courses: {
-                    $nin: [regex]
-                }
-            }]
-        }, (err, students) => {
+        let returnStudents = null;
+        let takenStudents = null;
+
+        STUDENT.db.db.command({
+            distinct: "lookup",
+            key: "username",
+            query: { type: "Student" }
+        }, (err, usernames) => {
             if (err) {
                 console.log(err);
             } else {
-                res.status(200);
-                res.json(students);
+                console.log("here");
+                returnStudents = usernames.values;
             }
+        });
+
+        STUDENT.db.db.command({
+            distinct: "lookup",
+            key: "username",
+            query: {
+                courses: {
+                    $in: [regex]
+                }
+            }
+        }, (err, usernames) => {
+            if (err) {
+                console.log(err);
+            } else {
+                console.log("here");
+                takenStudents = usernames.values;
+                if (returnStudents == null || takenStudents == null) {
+                    console.log("Error: Unable to find list of students who haven't taken course");
+                } else {
+                    returnStudents = returnStudents.filter(function (el) {
+                        return takenStudents.indexOf(el) < 0;
+                    });
+                    res.status(200);
+                    res.json(returnStudents);
+                }
+            }
+
         });
     });
 
@@ -227,7 +253,7 @@ router.route('/courses/:name/students/:year/:term')
                 res.status(200);
                 res.json(students);
             }
-        });
+        }).select("username");
     });
 
 router.route('/groups/:term/:usernames').get((req, res) => {
