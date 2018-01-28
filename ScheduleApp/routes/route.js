@@ -291,6 +291,26 @@ router.route('/faculty/student/:username/:course').get((req, res) => {
         });
 });
 
+router.route('/faculty/:username/:term').get((req, res) => {
+    const username = req.params.username.toUpperCase();
+    const term = req.params.term;
+
+    COURSE.find({
+        $and: [{
+            instructor: username
+        }, {
+            term: term
+        }]
+    }, (err, faculty) => {
+        if (err) {
+            console.log(err);
+        } else {
+            res.status(200);
+            res.json(faculty);
+        }
+    });
+});
+
 router.route('/term/:term').get((req, res) => {
 
     TERM.find({
@@ -307,6 +327,21 @@ router.route('/term/:term').get((req, res) => {
         } else {
             res.status(200);
             res.json(term);
+        }
+    });
+});
+
+router.route('/faculty/:username').get((req, res) => {
+    const username = req.params.username.toUpperCase();
+
+    COURSE.find({
+        instructor: username
+    }, (err, faculty) => {
+        if (err) {
+            console.log(err);
+        } else {
+            res.status(200);
+            res.json(faculty);
         }
     });
 });
