@@ -103,6 +103,24 @@ router.route('/student/:username').get((req, res) => {
     });
 });
 
+router.get('/student/:username/:term/advisor', function (req, res) {
+    const term = req.params.term;
+    const username = req.params.username.toUpperCase();
+
+    FACULTY.find({
+        advisees: {
+            $contains: username
+        }
+    }), (err, advisor) => {
+        if (err) {
+            console.log(err);
+        } else {
+            res.status(200);
+            res.json(advisor);
+        }
+    }
+});
+
 router.get('/student/:username/:term', function (req, res) {
     const term = req.params.term;
     const username = req.params.username.toUpperCase();
@@ -147,24 +165,22 @@ router.get('/student/:username/:term', function (req, res) {
                 graduationDate: 1,
                 minors: 1,
                 majors: 1,
-                // advisor: {
-                //     $filter: {
-                //         input: '$advisor',
-                //         as: 'advisor',
-                //         cond: {
-                //             $eq: [ '$$advisor.term', term ]
-                //         } 
-                //     }
-                // },
-                // advisor: 1,
-                "advisor.username": 1,
+                advisor: {
+                    $filter: {
+                        input: '$advisor',
+                        as: 'advisor',
+                        cond: {
+                            $eq: ['$$advisor.term', term],
+                        }
+                    }
+                },
                 "terms.term": 1,
                 courses: {
                     $filter: {
                         input: '$courseData',
                         as: 'course',
                         cond: {
-                            $eq: [ '$$course.term', term ]
+                            $eq: ['$$course.term', term]
                         }
                     }
                 }
@@ -211,7 +227,9 @@ router.route('/courses/:name/students/not-taken')
         STUDENT.db.db.command({
             distinct: "lookup",
             key: "username",
-            query: { type: "Student" }
+            query: {
+                type: "Student"
+            }
         }, (err, usernames) => {
             if (err) {
                 console.log(err);
