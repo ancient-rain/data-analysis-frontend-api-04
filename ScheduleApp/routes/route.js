@@ -130,6 +130,13 @@ router.get('/student/:username/:term', function (req, res) {
                 foreignField: "advisees",
                 as: "advisor"
             }
+        }, {
+            $lookup: {
+                from: "lookup",
+                localField: "username",
+                foreignField: "username",
+                as: "terms"
+            }
         },
         {
             $project: {
@@ -149,7 +156,9 @@ router.get('/student/:username/:term', function (req, res) {
                 //         } 
                 //     }
                 // },
-                advisor: 1,
+                // advisor: 1,
+                "advisor.username": 1,
+                "terms.term": 1,
                 courses: {
                     $filter: {
                         input: '$courseData',
