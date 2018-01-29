@@ -56,6 +56,13 @@ function checkFilter(yearFilter) {
 
 }
 
+router.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With');
+    next();
+});
+
 router.get('/course/:name/:term/students', function (req, res) {
     const term = req.params.term;
     const course = req.params.name;
