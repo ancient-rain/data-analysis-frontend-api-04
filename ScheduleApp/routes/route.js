@@ -138,7 +138,7 @@ router.get('/student/:username/:term', function (req, res) {
                         input: '$courseData',
                         as: 'course',
                         cond: {
-                            $eq: [ '$$course.term', '201710' ]
+                            $eq: [ '$$course.term', term ]
                         }
                     }
                 }
