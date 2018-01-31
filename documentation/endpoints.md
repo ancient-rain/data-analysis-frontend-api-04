@@ -12,7 +12,7 @@ Course Endpoints
 
 * [Show Course Information by Term](#show-course-information-by-term)
 
-* [Show a List of Students Who Have Taken a Course](#show-a-list-of-students-who-have-not-taken-a-course)
+* [Show a List of Students Who Have Taken a Course](#show-a-list-of-students-who-have-taken-a-course)
 
 * [Show a List of Students Who Have Not Taken a Course](#show-a-list-of-students-who-have-not-taken-a-course)
 
@@ -303,6 +303,45 @@ Term Endpoints
 
 * **URL**
 
+    `/faculty/:username/:term`
+
+* **Method:**
+
+    `GET`
+  
+*  **URL Params**
+
+    **Required:**
+ 
+    `username = String`
+    `term = String`
+
+* **Data Params**
+
+    None
+
+* **Success Response:**
+
+    * **Code:** 200 <br />
+ 
+* **Error Response:**
+
+    * **Code:** 400 BAD REQUEST <br />
+      **Content:** `{ error : "Bad Request!" }`
+
+    OR
+
+    * **Code:** 404 NOT FOUND <br />
+      **Content:** `{ error : "Could not find faculty information with term" }`
+
+* **Sample Call:**
+
+    `url: "/faculty/defoe/201630"`   
+    
+## Show a List of Terms
+
+* **URL**
+
     `/terms`
 
 * **Method:**
@@ -335,48 +374,7 @@ Term Endpoints
 * **Sample Call:**
 
 
-    `url: "/terms"`    
-    
-## Show a List of Terms
-
-Displays the list of students enrolled in a class for a current term     
-
-* **URL**
-
-    `/student/:username/:term`
-
-* **Method:**
-
-    `GET`
-  
-*  **URL Params**
-
-    **Required:**
- 
-    `username = String`
-    `term = String`
-
-* **Data Params**
-
-    None
-
-* **Success Response:**
-
-    * **Code:** 200 <br />
- 
-* **Error Response:**
-
-    * **Code:** 400 BAD REQUEST <br />
-      **Content:** `{ error : "Bad Request!" }`
-
-    OR
-
-    * **Code:** 404 NOT FOUND <br />
-      **Content:** `{ error : "Could not find student information with term" }`
-
-* **Sample Call:**
-
-    `url: "/student/bednartd/201710"`
+    `url: "/terms"` 
     
 ## Show Term Information
 
