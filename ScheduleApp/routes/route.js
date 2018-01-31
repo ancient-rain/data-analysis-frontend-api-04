@@ -195,6 +195,8 @@ router.get('/student/:username/:term', function (req, res) {
                 const terms = [];
                 const courses = [];
                 let advisor = '';
+                let majorStr = '';
+                let minorStr = '';
 
                 if (data.advisor[0]) {
                     advisor = data.advisor[0].username;
@@ -220,14 +222,28 @@ router.get('/student/:username/:term', function (req, res) {
                 data.majors.pop();
                 data.minors.pop();
 
+                for (let i = 0; i < data.majors.length; i++) {
+                    majorStr += `${data.majors[i]}`;
+                    if (i + 1 < data.majors.length) {
+                        majorStr += '/';
+                    }
+                }
+
+                for (let i = 0; i < data.minors.length; i++) {
+                    minorStr += `${data.minors[i]}`;
+                    if (i + 1 < data.minors.length) {
+                        minorStr += '/';
+                    }
+                }
+
                 const newStudent = {
                     _id: data._id,
                     term: data.term,
                     username: data.username,
                     name: data.name,
                     year: data.year,
-                    majors: data.majors,
-                    minors: data.minors,
+                    majors: majorStr,
+                    minors: minorStr,
                     graduationDate: data.graduationDate,
                     advisor: advisor,
                     terms: terms,
@@ -264,7 +280,6 @@ router.route('/courses/:name/students')
         });
     });
 
-/* TODO: Filter out usernames that have taken the course already */
 router.route('/courses/:name/students/not-taken')
     .get((req, res) => {
         const name = req.params.name.toUpperCase();
