@@ -1,72 +1,70 @@
 const STUDENT = require('../models/student');
 
 exports.getStudentInfoByTerm = function (req, res, next) {
-    const term = req.params.term;
     const username = req.params.username.toUpperCase();
+    const term = req.params.term;
 
     STUDENT.aggregate([{
-            $match: {
-                $and: [{
-                    term: term
-                }, {
-                    username: username
-                }]
-            }
-        }, {
-            $lookup: {
-                from: "lookup",
-                localField: "courses",
-                foreignField: "name",
-                as: "courseData"
-            }
-        }, {
-            $lookup: {
-                from: "lookup",
-                localField: "username",
-                foreignField: "advisees",
-                as: "advisor"
-            }
-        }, {
-            $lookup: {
-                from: "lookup",
-                localField: "username",
-                foreignField: "username",
-                as: "terms"
-            }
-        },
-        {
-            $project: {
-                term: 1,
-                username: 1,
-                name: 1,
-                year: 1,
-                graduationDate: 1,
-                minors: 1,
-                majors: 1,
-                advisor: {
-                    $filter: {
-                        input: '$advisor',
-                        as: 'advisor',
-                        cond: {
-                            $eq: ['$$advisor.term', term],
-                        }
+        $match: {
+            $and: [{
+                term: term
+            }, {
+                username: username
+            }]
+        }
+    }, {
+        $lookup: {
+            from: "lookup",
+            localField: "courses",
+            foreignField: "name",
+            as: "courseData"
+        }
+    }, {
+        $lookup: {
+            from: "lookup",
+            localField: "username",
+            foreignField: "advisees",
+            as: "advisor"
+        }
+    }, {
+        $lookup: {
+            from: "lookup",
+            localField: "username",
+            foreignField: "username",
+            as: "terms"
+        }
+    }, {
+        $project: {
+            term: 1,
+            username: 1,
+            name: 1,
+            year: 1,
+            graduationDate: 1,
+            minors: 1,
+            majors: 1,
+            advisor: {
+                $filter: {
+                    input: '$advisor',
+                    as: 'advisor',
+                    cond: {
+                        $eq: ['$$advisor.term', term],
                     }
-                },
-                "terms.term": 1,
-                courses: {
-                    $filter: {
-                        input: '$courseData',
-                        as: 'course',
-                        cond: {
-                            $eq: ['$$course.term', term]
-                        }
+                }
+            },
+            "terms.term": 1,
+            courses: {
+                $filter: {
+                    input: '$courseData',
+                    as: 'course',
+                    cond: {
+                        $eq: ['$$course.term', term]
                     }
                 }
             }
         }
-    ], (err, student) => {
+    }], (err, student) => {
         if (err) {
-            handleError('Bad request', res, 400, next);
+            handleError('Bad request!', res, 400, next);
         } else {
             try {
                 const data = student[0];
@@ -80,7 +78,7 @@ exports.getStudentInfoByTerm = function (req, res, next) {
                 res.status(200);
                 res.json([newStudent]);
             } catch (error) {
-                handleError('Could not find student information with term', res, 404, next);
+                handleError('Could not find student information for given term', res, 404, next);
             }
         }
     });
