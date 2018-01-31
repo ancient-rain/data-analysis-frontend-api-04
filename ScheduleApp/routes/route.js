@@ -5,6 +5,7 @@ const STUDENT = mongoose.model('Student');
 const FACULTY = mongoose.model("Faculty");
 const TERM = mongoose.model("Term");
 const COURSE = mongoose.model("Course");
+const studentController = require('../controllers/student');
 
 const YEARS = ['Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'YGR'];
 
@@ -121,145 +122,7 @@ router.get('/student/:username/:term/advisor', function (req, res) {
     }
 });
 
-router.get('/student/:username/:term', function (req, res) {
-    const term = req.params.term;
-    const username = req.params.username.toUpperCase();
-    // db.lookup.aggregate({$match:{$and:[{term:"201630"},{username:"BEDNARTD"}]}},{$lookup:{from:"lookup",localField:"courses",foreignField:"name",as:"courseData"}}).pretty();
-
-    STUDENT.aggregate([{
-            $match: {
-                $and: [{
-                    term: term
-                }, {
-                    username: username
-                }]
-            }
-        }, {
-            $lookup: {
-                from: "lookup",
-                localField: "courses",
-                foreignField: "name",
-                as: "courseData"
-            }
-        }, {
-            $lookup: {
-                from: "lookup",
-                localField: "username",
-                foreignField: "advisees",
-                as: "advisor"
-            }
-        }, {
-            $lookup: {
-                from: "lookup",
-                localField: "username",
-                foreignField: "username",
-                as: "terms"
-            }
-        },
-        {
-            $project: {
-                term: 1,
-                username: 1,
-                name: 1,
-                year: 1,
-                graduationDate: 1,
-                minors: 1,
-                majors: 1,
-                advisor: {
-                    $filter: {
-                        input: '$advisor',
-                        as: 'advisor',
-                        cond: {
-                            $eq: ['$$advisor.term', term],
-                        }
-                    }
-                },
-                "terms.term": 1,
-                courses: {
-                    $filter: {
-                        input: '$courseData',
-                        as: 'course',
-                        cond: {
-                            $eq: ['$$course.term', term]
-                        }
-                    }
-                }
-            }
-        }
-    ], (err, student) => {
-        if (err) {
-            console.log(err);
-        } else {
-            try {
-                const data = student[0];
-                const terms = [];
-                const courses = [];
-                let advisor = '';
-                let majorStr = '';
-                let minorStr = '';
-
-                if (data.advisor[0]) {
-                    advisor = data.advisor[0].username;
-                }
-
-                for (let i = 0; i < data.terms.length; i++) {
-                    terms.push(data.terms[i].term);
-                }
-
-                for (let i = 0; i < data.courses.length; i++) {
-                    const course = data.courses[i];
-                    courses.push({
-                        _id: course._id,
-                        name: course.name,
-                        term: course.term,
-                        description: course.description,
-                        creditHours: course.creditHours,
-                        meetTimes: course.meetTimes,
-                        instructor: course.instructor
-                    });
-                }
-
-                data.majors.pop();
-                data.minors.pop();
-
-                for (let i = 0; i < data.majors.length; i++) {
-                    majorStr += `${data.majors[i]}`;
-                    if (i + 1 < data.majors.length) {
-                        majorStr += '/';
-                    }
-                }
-
-                for (let i = 0; i < data.minors.length; i++) {
-                    minorStr += `${data.minors[i]}`;
-                    if (i + 1 < data.minors.length) {
-                        minorStr += '/';
-                    }
-                }
-
-                const newStudent = {
-                    _id: data._id,
-                    term: data.term,
-                    username: data.username,
-                    name: data.name,
-                    year: data.year,
-                    majors: majorStr,
-                    minors: minorStr,
-                    graduationDate: data.graduationDate,
-                    advisor: advisor,
-                    terms: terms,
-                    courses: courses
-                };
-
-                res.status(200);
-                res.json([newStudent]);
-            } catch (error) {
-                res.status(404);
-                res.json(null);
-                console.log(error);
-            }
-        }
-    });
-});
+router.get('/student/:username/:term', studentController.getStudentInfoByTerm);
 
 router.route('/courses/:name/students')
     .get((req, res) => {
