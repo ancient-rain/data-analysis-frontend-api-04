@@ -1,4 +1,17 @@
 # Index
+
+Student Endpoints
+
+* [Show Student Information Regardless of Term](#show-student-information-regardless-of-term)
+
+* [Show Student Information by Term](#show-student-information-by-term)
+
+Course Endpoints
+
+Faculty Endpoints
+
+Term Endpoints
+
 [Show Students in a Class for Given Term](#show-students-in-a-class-for-given-term)  
 
 [Show Student's for Given Term](#show-student's-for-given-term)
@@ -16,6 +29,85 @@
 [Show Individual Faculty Advisee](#show-individual-factuly-advisee)
 
 # Endpoint Information
+
+## Show Student Information Regardless of Term     
+
+* **URL**
+
+    `/student/:username`
+
+* **Method:**
+
+    `GET`
+  
+*  **URL Params**
+
+    **Required:**
+ 
+    `username = String`
+
+* **Data Params**
+
+    None
+
+* **Success Response:**
+
+    * **Code:** 200 <br />
+ 
+* **Error Response:**
+
+    * **Code:** 400 BAD REQUEST <br />
+      **Content:** `{ error : "Bad Request!" }`
+
+    OR
+
+    * **Code:** 404 NOT FOUND <br />
+      **Content:** `{ error : "Could not find student information" }`
+
+* **Sample Call:**
+
+    `url: "/student/bednartd"`
+
+## Show Student Information by Term
+
+Displays the list of students enrolled in a class for a current term     
+
+* **URL**
+
+    `/student/:username/:term`
+
+* **Method:**
+
+    `GET`
+  
+*  **URL Params**
+
+    **Required:**
+ 
+    `username = String`
+    `term = String`
+
+* **Data Params**
+
+    None
+
+* **Success Response:**
+
+    * **Code:** 200 <br />
+ 
+* **Error Response:**
+
+    * **Code:** 400 BAD REQUEST <br />
+      **Content:** `{ error : "Bad Request!" }`
+
+    OR
+
+    * **Code:** 404 NOT FOUND <br />
+      **Content:** `{ error : "Could not find student information with term" }`
+
+* **Sample Call:**
+
+    `url: "/student/bednartd/201710"`
 
 ## Show Students in a Class for Given Term
 

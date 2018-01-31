@@ -66,7 +66,7 @@ exports.getStudentInfoByTerm = function (req, res, next) {
         }
     ], (err, student) => {
         if (err) {
-            console.log(err);
+            handleError('Bad request', res, 400, next);
         } else {
             try {
                 const data = student[0];
@@ -80,9 +80,7 @@ exports.getStudentInfoByTerm = function (req, res, next) {
                 res.status(200);
                 res.json([newStudent]);
             } catch (error) {
-                res.status(404);
-                res.json(null);
-                console.log(error);
+                handleError('Could not find student information with term', res, 404, next);
             }
         }
     });
@@ -165,4 +163,11 @@ function createMinorsString(minors) {
     }
 
     return minorStr;
+}
+
+function handleError(err, res, statusCode, next) {
+    res.status(statusCode);
+    err.status = statusCode;
+    console.log(err);
+    next(err);
 }

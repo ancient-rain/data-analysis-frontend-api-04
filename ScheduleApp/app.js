@@ -6,6 +6,23 @@ const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 
+const swaggerUi = require('swagger-ui-express');
+const swaggerJSDoc = require('swagger-jsdoc');
+
+const spec = swaggerJSDoc({
+  swaggerDefinition: {
+    info: {
+      title: 'ScheduleApp',
+      version: '1.0.0'
+    },
+    produces: ['application/json'],
+    consumes: ['application/json']
+  },
+  apis: [
+    'routes/*.js',
+  ]
+});
+
 mongoose.Promise = global.Promise;
 
 require('./models/student');
@@ -48,6 +65,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 // app.use('/', index);
 // app.use('/users', users);
 app.use('/', schedules);
+
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(spec));
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
