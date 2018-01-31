@@ -190,8 +190,51 @@ router.get('/student/:username/:term', function (req, res) {
         if (err) {
             console.log(err);
         } else {
+            const data = student[0];
+            const terms = [];
+            const courses = [];
+            let advisor = '';
+
+            if (data.advisor[0]) {
+                advisor = data.advisor[0].username;
+            }
+
+            for (let i = 0; i < data.terms.length; i++) {
+                terms.push(data.terms[i].term);
+            }
+
+            for (let i = 0; i < data.courses.length; i++) {
+                const course = data.courses[i];
+                courses.push({
+                    _id: course._id,
+                    name: course.name,
+                    term: course.term,
+                    description: course.description,
+                    creditHours: course.creditHours,
+                    meetTimes: course.meetTimes,
+                    instructor: course.instructor
+                });
+            }
+
+            data.majors.pop();
+            data.minors.pop();
+
+            const newStudent = {
+                _id: data._id,
+                term: data.term,
+                username: data.username,
+                name: data.name,
+                year: data.year,
+                majors: data.majors,
+                minors: data.minors,
+                graduationDate: data.graduationDate,
+                advisor: advisor,
+                terms: terms,
+                courses: courses
+            };
+
             res.status(200);
-            res.json(student);
+            res.json([newStudent]);
         }
     });
 });
