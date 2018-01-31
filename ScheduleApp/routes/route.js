@@ -190,51 +190,57 @@ router.get('/student/:username/:term', function (req, res) {
         if (err) {
             console.log(err);
         } else {
-            const data = student[0];
-            const terms = [];
-            const courses = [];
-            let advisor = '';
+            try {
+                const data = student[0];
+                const terms = [];
+                const courses = [];
+                let advisor = '';
 
-            if (data.advisor[0]) {
-                advisor = data.advisor[0].username;
+                if (data.advisor[0]) {
+                    advisor = data.advisor[0].username;
+                }
+
+                for (let i = 0; i < data.terms.length; i++) {
+                    terms.push(data.terms[i].term);
+                }
+
+                for (let i = 0; i < data.courses.length; i++) {
+                    const course = data.courses[i];
+                    courses.push({
+                        _id: course._id,
+                        name: course.name,
+                        term: course.term,
+                        description: course.description,
+                        creditHours: course.creditHours,
+                        meetTimes: course.meetTimes,
+                        instructor: course.instructor
+                    });
+                }
+
+                data.majors.pop();
+                data.minors.pop();
+
+                const newStudent = {
+                    _id: data._id,
+                    term: data.term,
+                    username: data.username,
+                    name: data.name,
+                    year: data.year,
+                    majors: data.majors,
+                    minors: data.minors,
+                    graduationDate: data.graduationDate,
+                    advisor: advisor,
+                    terms: terms,
+                    courses: courses
+                };
+
+                res.status(200);
+                res.json([newStudent]);
+            } catch (error) {
+                res.status(404);
+                res.json(null);
+                console.log(error);
             }
-
-            for (let i = 0; i < data.terms.length; i++) {
-                terms.push(data.terms[i].term);
-            }
-
-            for (let i = 0; i < data.courses.length; i++) {
-                const course = data.courses[i];
-                courses.push({
-                    _id: course._id,
-                    name: course.name,
-                    term: course.term,
-                    description: course.description,
-                    creditHours: course.creditHours,
-                    meetTimes: course.meetTimes,
-                    instructor: course.instructor
-                });
-            }
-
-            data.majors.pop();
-            data.minors.pop();
-
-            const newStudent = {
-                _id: data._id,
-                term: data.term,
-                username: data.username,
-                name: data.name,
-                year: data.year,
-                majors: data.majors,
-                minors: data.minors,
-                graduationDate: data.graduationDate,
-                advisor: advisor,
-                terms: terms,
-                courses: courses
-            };
-
-            res.status(200);
-            res.json([newStudent]);
         }
     });
 });
@@ -389,18 +395,143 @@ router.route('/faculty/:username/:term').get((req, res) => {
     const username = req.params.username.toUpperCase();
     const term = req.params.term;
 
-    COURSE.find({
-        $and: [{
-            instructor: username
-        }, {
-            term: term
-        }]
-    }, (err, faculty) => {
+    FACULTY.aggregate([{
+        $match: {
+            $and: [{
+                username: username
+            }, {
+                term: term
+            }]
+        }
+    }, {
+        $lookup: {
+            from: 'lookup',
+            localField: 'username',
+            foreignField: 'instructor',
+            as: 'courses'
+        }
+    }, {
+        $lookup: {
+            from: 'lookup',
+            localField: 'username',
+            foreignField: 'username',
+            as: 'terms'
+        }
+    }, {
+        $lookup: {
+            from: 'lookup',
+            localField: 'advisees',
+            foreignField: 'username',
+            as: 'students'
+        }
+    }, {
+        $project: {
+            term: 1,
+            username: 1,
+            name: 1,
+            dept: 1,
+            "terms.term": 1,
+            courses: {
+                $filter: {
+                    input: '$courses',
+                    as: 'course',
+                    cond: {
+                        $eq: ['$$course.term', term]
+                    }
+                }
+            },
+            advisees: {
+                $filter: {
+                    input: '$students',
+                    as: 'student',
+                    cond: {
+                        $and: [{
+                            $eq: ['$$student.term', term]
+                        }, {
+                            $eq: ['$$student.type', 'Student']
+                        }]
+                    }
+                }
+            }
+        }
+    }], (err, faculty) => {
         if (err) {
             console.log(err);
         } else {
-            res.status(200);
-            res.json(faculty);
+            try {
+                const data = faculty[0];
+                const terms = [];
+                const courses = [];
+                const advisees = [];
+
+                for (let i = 0; i < data.terms.length; i++) {
+                    terms.push(data.terms[i].term);
+                }
+
+                for (let i = 0; i < data.courses.length; i++) {
+                    const course = data.courses[i];
+                    courses.push({
+                        _id: course._id,
+                        name: course.name,
+                        term: course.term,
+                        description: course.description,
+                        creditHours: course.creditHours,
+                        meetTimes: course.meetTimes,
+                    });
+                }
+
+                for (let i = 0; i < data.advisees.length; i++) {
+                    const advisee = data.advisees[i];
+                    let majorStr = '';
+                    let minorStr = '';
+
+                    advisee.majors.pop();
+                    advisee.minors.pop();
+
+                    for (let j = 0; j < advisee.majors.length; j++) {
+                        majorStr += `${advisee.majors[j]}`;
+                        if (j + 1 < advisee.majors.length) {
+                            majorStr += '/';
+                        }
+                    }
+
+                    for (let j = 0; j < advisee.minors.length; j++) {
+                        majorStr += `${advisee.minors[j]}`;
+                        if (j + 1 < advisee.minors.length) {
+                            majorStr += '/';
+                        }
+                    }
+
+                    advisees.push({
+                        _id: advisee._id,
+                        term: advisee.term,
+                        name: advisee.name,
+                        username: advisee.username,
+                        year: advisee.year,
+                        majors: majorStr,
+                        minors: minorStr,
+                        graduationDate: advisee.graduationDate
+                    });
+                }
+
+                const newFaculty = {
+                    _id: data._id,
+                    term: data.term,
+                    name: data.name,
+                    username: data.username,
+                    dept: data.dept,
+                    terms: terms,
+                    courses: courses,
+                    advisees: advisees
+                };
+
+                res.status(200);
+                res.json([newFaculty]);
+            } catch (error) {
+                res.status(404);
+                res.json(null);
+                console.log(error);
+            }
         }
     });
 });
