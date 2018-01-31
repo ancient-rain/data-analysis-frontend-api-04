@@ -8,29 +8,29 @@ Student Endpoints
 
 Course Endpoints
 
+* [Show a List of Courses and their Information By Term](#show-a-list-of-courses-and-their-information-by-term)
+
+* [Show Course Information by Term](#show-course-information-by-term)
+
+* [Show a List of Students Who Have Taken a Course](#show-a-list-of-students-who-have-not-taken-a-course)
+
+* [Show a List of Students Who Have Not Taken a Course](#show-a-list-of-students-who-have-not-taken-a-course)
+
 Faculty Endpoints
+
+* [Show Faculty Information Regardless of Term](#show-faculty-information-regardless-of-term)
+
+* [Show Faculty Information by Term](#show-faculty-information-by-term)
 
 Term Endpoints
 
-[Show Students in a Class for Given Term](#show-students-in-a-class-for-given-term)  
+* [Show a List of Terms](#show-a-list-of-terms)
 
-[Show Student's for Given Term](#show-student's-for-given-term)
-
-[Show Students Who Are or Have Taken a Course](#show-students-who-are-or-have-taken-a-course)
-
-[Show Students Who Have Not Taken a Course](#show-students-who-have-not-taken-a-course)
-
-[Show Students by Year Who Are or Have Taken a Course](#show-students-by-year-who-are-or-have-taken-a-course)
-
-[Show Students by Year Who Have not Taken a Course](#show-students-by-year-who-have-not-taken-a-course)
-
-[Show Faculty Advisees](#show-faculty-advisees)
-
-[Show Individual Faculty Advisee](#show-individual-factuly-advisee)
+* [Show Term Information](#show-term-information)
 
 # Endpoint Information
 
-## Show Student Information Regardless of Term     
+## Show Student Information Regardless of Term
 
 * **URL**
 
@@ -70,6 +70,275 @@ Term Endpoints
 
 ## Show Student Information by Term
 
+* **URL**
+
+    `/student/:username/:term`
+
+* **Method:**
+
+    `GET`
+  
+*  **URL Params**
+
+    **Required:**
+ 
+    `username = String`
+    `term = String`
+
+* **Data Params**
+
+    None
+
+* **Success Response:**
+
+    * **Code:** 200 <br />
+ 
+* **Error Response:**
+
+    * **Code:** 400 BAD REQUEST <br />
+      **Content:** `{ error : "Bad Request!" }`
+
+    OR
+
+    * **Code:** 404 NOT FOUND <br />
+      **Content:** `{ error : "Could not find student information with term" }`
+
+* **Sample Call:**
+
+    `url: "/student/bednartd/201710"`
+    
+## Show a List of Courses and their Information By Term
+
+* **URL**
+
+    `/courses/:course/:term`
+
+* **Method:**
+
+    `GET`
+  
+*  **URL Params**
+
+    **Required:**
+ 
+    `course = String`
+    `term = String`
+
+* **Data Params**
+
+    None
+
+* **Success Response:**
+
+    * **Code:** 200 <br />
+ 
+* **Error Response:**
+
+    * **Code:** 400 BAD REQUEST <br />
+      **Content:** `{ error : "Bad Request!" }`
+
+    OR
+
+    * **Code:** 404 NOT FOUND <br />
+      **Content:** `{ error : "Could not find courses information with term" }`
+
+* **Sample Call:**
+
+    `url: "/courses/CSSE333/201630"` OR `url: "/courses/CSSE/201630"`
+    
+## Show Course Information by Term
+
+* **URL**
+
+    `/course/:course/:term`
+
+* **Method:**
+
+    `GET`
+  
+*  **URL Params**
+
+    **Required:**
+ 
+    `course = String`
+    `term = String`
+
+* **Data Params**
+
+    None
+
+* **Success Response:**
+
+    * **Code:** 200 <br />
+ 
+* **Error Response:**
+
+    * **Code:** 400 BAD REQUEST <br />
+      **Content:** `{ error : "Bad Request!" }`
+
+    OR
+
+    * **Code:** 404 NOT FOUND <br />
+      **Content:** `{ error : "Could not find course information with term" }`
+
+* **Sample Call:**
+
+    `url: "/course/CSSE333-01/201630"`
+    
+## Show a List of Students Who Have Taken a Course
+
+* **URL**
+
+    `/courses/:name/students`
+
+* **Method:**
+
+    `GET`
+  
+*  **URL Params**
+
+    **Required:**
+ 
+    `name = String`
+
+* **Data Params**
+
+    None
+
+* **Success Response:**
+
+    * **Code:** 200 <br />
+ 
+* **Error Response:**
+
+    * **Code:** 400 BAD REQUEST <br />
+      **Content:** `{ error : "Bad Request!" }`
+
+    OR
+
+    * **Code:** 404 NOT FOUND <br />
+      **Content:** `{ error : "Could not find student information for course" }`
+
+* **Sample Call:**
+
+    `url: "/courses/CSSE330/students"`
+    
+## Show a List of Students Who Have Not Taken a Course
+
+* **URL**
+
+    `/courses/:name/students/not-taken`
+
+* **Method:**
+
+    `GET`
+  
+*  **URL Params**
+
+    **Required:**
+ 
+    `name = String`
+
+* **Data Params**
+
+    None
+
+* **Success Response:**
+
+    * **Code:** 200 <br />
+ 
+* **Error Response:**
+
+    * **Code:** 400 BAD REQUEST <br />
+      **Content:** `{ error : "Bad Request!" }`
+
+    OR
+
+    * **Code:** 404 NOT FOUND <br />
+      **Content:** `{ error : "Could not find student information for course" }`
+
+* **Sample Call:**
+
+    `url: "/courses/CSSE330/students/not-taken"`
+    
+## Show Faculty Information Regardless of Term
+
+* **URL**
+
+    `/faculty/:username`
+
+* **Method:**
+
+    `GET`
+  
+*  **URL Params**
+
+    **Required:**
+ 
+    `username = String`
+
+* **Data Params**
+
+    None
+
+* **Success Response:**
+
+    * **Code:** 200 <br />
+ 
+* **Error Response:**
+
+    * **Code:** 400 BAD REQUEST <br />
+      **Content:** `{ error : "Bad Request!" }`
+
+    OR
+
+    * **Code:** 404 NOT FOUND <br />
+      **Content:** `{ error : "Could not find faculty" }`
+
+* **Sample Call:**
+
+    `url: "/faculty/defoe"`
+    
+## Show Faculty Information by Term
+
+* **URL**
+
+    `/terms`
+
+* **Method:**
+
+    `GET`
+  
+*  **URL Params**
+
+    None
+
+* **Data Params**
+
+    None
+
+* **Success Response:**
+
+    * **Code:** 200 <br />
+      **Content:** `{ sucess: true }`
+ 
+* **Error Response:**
+
+    * **Code:** 400 BAD REQUEST <br />
+      **Content:** `{ error : "Bad Request!" }`
+
+    OR
+
+    * **Code:** 404 NOT FOUND <br />
+      **Content:** `{ error : "Could not find information for terms" }`  
+      
+* **Sample Call:**
+
+
+    `url: "/terms"`    
+    
+## Show a List of Terms
+
 Displays the list of students enrolled in a class for a current term     
 
 * **URL**
@@ -108,366 +377,8 @@ Displays the list of students enrolled in a class for a current term
 * **Sample Call:**
 
     `url: "/student/bednartd/201710"`
-
-## Show Students in a Class for Given Term
-
-Displays the list of students enrolled in a class for a current term     
-
-* **URL**
-
-    `/:term/students/course/:name`
-
-* **Method:**
-
-    `GET`
-  
-*  **URL Params**
-
-    **Required:**
- 
-    `term = String`  
-    `name = String`
-
-* **Data Params**
-
-    None
-
-* **Success Response:**
-
-    * **Code:** 200 <br />
-      **Content:** `{ sucess: true }`
- 
-* **Error Response:**
-
-    * **Code:** 404 NOT FOUND <br />
-      **Content:** `{ error : "Term doesn't exist!" }`
-
-    OR
-
-    * **Code:** 404 NOT FOUND <br />
-      **Content:** `{ error : "Course name doesn't exist!" }`
-
-* **Sample Call:**
-
-    Get the list of students currently enrolled in CSSE280 for the 201710 term
-
-    `url: "/201710/students/course/CSSE280"`
-
-## Show Student's for Given Term
-
-Displays the student's course schedule for the provided term     
-
-* **URL**
-
-    `/:term/student/:username`
-
-* **Method:**
-
-    `GET`
-  
-*  **URL Params**
-
-    **Required:**
- 
-    `username = String`
-
-* **Data Params**
-
-    None
-
-* **Success Response:**
-
-    * **Code:** 200 <br />
-      **Content:** `{ sucess: true }`
- 
-* **Error Response:**
-
-    * **Code:** 404 NOT FOUND <br />
-      **Content:** `{ error : "Student doesn't exist!" }`
-
-* **Sample Call:**
-
-    Get bednartd's schedule for the 201710 term
-
-    `url: "/201710/student/bednartd"`
-
-## Show Students Who Are or Have Taken a Course
-
-Displays the list of students who have already taken or are taking a class     
-
-* **URL**
-
-    `/course/:name/students`
-
-* **Method:**
-
-    `GET`
-  
-*  **URL Params**
-
-    **Required:**
- 
-    `name = String`
-
-* **Data Params**
-
-    None
-
-* **Success Response:**
-
-    * **Code:** 200 <br />
-      **Content:** `{ sucess: true }`
- 
-* **Error Response:**
-
-    * **Code:** 404 NOT FOUND <br />
-      **Content:** `{ error : "Course name doesn't exist!" }`
-
-* **Sample Call:**
-
-    Get all students who are taking/taken CSSE280
     
-    `url: "/course/CSSE280/students"`
-
-## Show Students Who Have Not Taken a Course
-
-Displays the list of students who have not taken a course     
-
-* **URL**
-
-    `/course/:name/students/not-taken`
-
-* **Method:**
-
-    `GET`
-  
-*  **URL Params**
-
-    **Required:**
- 
-    `name = String`
-
-* **Data Params**
-
-    None
-
-* **Success Response:**
-
-    * **Code:** 200 <br />
-      **Content:** `{ sucess: true }`
- 
-* **Error Response:**
-
-    * **Code:** 404 NOT FOUND <br />
-      **Content:** `{ error : "Course name doesn't exist!" }`
-
-* **Sample Call:**
-
-    Get all students who have not taken CSSE280
-
-    `url: "/course/CSSE280/students/not-taken"`
-    
-## Show Students by Year Who Are or Have Taken a Course
-
-Displays the list of students with a given year or years enrolled in a class     
-
-* **URL**
-
-    `/courses/:name/students/:year`
-
-* **Method:**
-
-    `GET`
-  
-*  **URL Params**
- 
-    **Required:**
- 
-    `name = String`
-    `year = String`  
-
-* **Data Params**
-
-    None
-
-* **Success Response:**
-
-    * **Code:** 200 <br />
-      **Content:** `{ sucess: true }`
- 
-* **Error Response:**
-
-    * **Code:** 404 NOT FOUND <br />
-      **Content:** `{ error : "Year doesn't exist!" }`
-
-    OR
-
-    * **Code:** 404 NOT FOUND <br />
-      **Content:** `{ error : "Course name doesn't exist!" }`
-
-* **Sample Call:**
-
-    Get all year 3 students who are taking/taken CSSE280
-
-    `url: "/course/CSSE280/students/Y3"`
-
-    Get all year 3 and up who are taking/taken CSSE280
-
-    `url: "/course/CSSE280/students/Y3+"`
-
-    Get all year 3 and lower who are taking/taken CSSE280
-
-    `url: "/course/CSSE280/students/Y3-"`
-
-## Show Students by Year Who Have Not Taken a Course
-
-Displays the list of students with a given year or years who have not taken a class   
-
-* **URL**
-
-    `/courses/:name/students/not-taken/:year`
-
-* **Method:**
-
-    `GET`
-  
-*  **URL Params**
- 
-    **Required:**
- 
-    `name = String`
-    `year = String`  
-
-* **Data Params**
-
-    None
-
-* **Success Response:**
-
-    * **Code:** 200 <br />
-      **Content:** `{ sucess: true }`
- 
-* **Error Response:**
-
-    * **Code:** 404 NOT FOUND <br />
-      **Content:** `{ error : "Year doesn't exist!" }`
-
-    OR
-
-    * **Code:** 404 NOT FOUND <br />
-      **Content:** `{ error : "Course name doesn't exist!" }`
-
-* **Sample Call:**
-
-    Get all year 3 students who are have not taken CSSE280
-
-    `url: "/course/CSSE280/students/not-taken/Y3"`
-
-    Get all year 3 and up who have not taken CSSE280
-
-    `url: "/course/CSSE280/students/not-taken/Y3+"`
-
-    Get all year 3 and lower who have not taken CSSE280
-
-    `url: "/course/CSSE280/students/not-taken/Y3-"`
-
-## Show Faculty Advisees
-
-Displays a factulty's advisees for a given term
-
-* **URL**
-
-    `/:term/faculty/:username/advisees`
-
-* **Method:**
-
-    `GET`
-  
-*  **URL Params**
- 
-    **Required:**
- 
-    `term = String`
-    `username = String`  
-
-* **Data Params**
-
-    None
-
-* **Success Response:**
-
-    * **Code:** 200 <br />
-      **Content:** `{ sucess: true }`
- 
-* **Error Response:**
-
-    * **Code:** 404 NOT FOUND <br />
-      **Content:** `{ error : "Term doesn't exist!" }`
-
-    OR
-
-    * **Code:** 404 NOT FOUND <br />
-      **Content:** `{ error : "Faculty doesn't exist!" }`
-
-* **Sample Call:**
-
-    Get all of defoe's advisees for the 201710 term
-
-    `url: "/201710/faculty/defoe/advisee"`
-
-## Show Individual Factuly Advisee
-Displays a single factulty's advisee for a given term
-
-* **URL**
-
-    `/:term/faculty/:fusername/advisee/:susername`
-
-* **Method:**
-
-    `GET`
-  
-*  **URL Params**
- 
-    **Required:**
- 
-    `term = String`
-    `fusername = String`
-    `susername = String`  
-
-* **Data Params**
-
-    None
-
-* **Success Response:**
-
-    * **Code:** 200 <br />
-      **Content:** `{ sucess: true }`
- 
-* **Error Response:**
-
-    * **Code:** 404 NOT FOUND <br />
-      **Content:** `{ error : "Term doesn't exist!" }`
-
-    OR
-
-    * **Code:** 404 NOT FOUND <br />
-      **Content:** `{ error : "Faculty doesn't exist!" }`
-
-    OR
-
-    * **Code:** 404 NOT FOUND <br />
-      **Content:** `{ error : "Student doesn't exist!" }`
-
-* **Sample Call:**
-
-    Get bednartd's infromation as defoe for the 201710 term
-
-    `url: "/201710/faculty/defoe/advisee/bednartd"`
-
-
-## Show a term's information
-
-Displays the information for the given term    
+## Show Term Information
 
 * **URL**
 
@@ -494,53 +405,16 @@ Displays the information for the given term
  
 * **Error Response:**
 
-    * **Code:** 404 NOT FOUND <br />
-      **Content:** `{ error : "Term doesn't exist!" }`
+    * **Code:** 400 BAD REQUEST <br />
+      **Content:** `{ error : "Bad Request!" }`
 
-* **Sample Call:**
-
-    Get the 201710 term
-    
-    `url: "/term/201710"`
-
-
-## Show info of all classes of a given course in a given term
-
-Displays the information of all classes of a given course in a given term
-
-* **URL**
-
-    `/courses/:name/:term`
-
-* **Method:**
-
-    `GET`
-  
-*  **URL Params**
-
-    **Required:**
-    
-    `name = String`
-    `term = String`
-
-* **Data Params**
-
-    None
-
-* **Success Response:**
-
-    * **Code:** 200 <br />
-      **Content:** `{ sucess: true }`
- 
-* **Error Response:**
+    OR
 
     * **Code:** 404 NOT FOUND <br />
-      **Content:** `{ error : "Course doesn't exist!" }`
-
+      **Content:** `{ error : "Could not find information for term" }`  
+      
 * **Sample Call:**
 
-    Get all classes and their info of a given course in a given term
-    
-    `url: "/courses/CSSE120/201710"`
 
+    `url: "/term/201630"` 
     
