@@ -1,0 +1,113 @@
+definitions:
+  Course:
+    properties:
+      type:
+        type: string
+      name:
+        type: string
+      term:
+        type: string
+      description:
+        type: string
+      creditHours:
+        type: string
+      meetTimes:
+        type: string
+      intructor:
+        type: string
+  Faculty:
+    properties:
+      type:
+        type: string
+      term:
+        type: string
+      username:
+        type: string
+      name:
+        type: string
+      dept:
+        type: string
+      advisees:
+        type: array
+        items:
+          type: string
+  FacultyInfoTerm:
+    properties:
+      term:
+        type: string
+      name:
+        type: string
+      username:
+        type: string
+      dept:
+        type: string
+      courses:
+        type: array
+        items:
+          $ref: "#/definitions/Course"
+      advisees:
+        type: array
+        items:
+          $ref: "#/definitions/Student"
+  Student:
+    properties:
+      term:
+        type: string
+      username:
+        type: string
+      name:
+        type: string
+      year:
+        type: number
+      graduationDate:
+        type: string
+      majors:
+        type: array
+        items:
+          type: string
+      minors:
+        type: array
+        items:
+          type: string
+      courses:
+        type: array
+        items:
+          type: string
+  StudentInfoTerm:
+    properties:
+      type:
+        type: string
+      term:
+        type: string
+      username:
+        type: string
+      name:
+        type: string
+      year:
+        type: string
+      graduationDate:
+        type: string
+      advisor:
+        type: string
+      majors:
+        type: string
+      minors:
+        type: string
+      courses:
+        type: array
+        items:
+          $ref: "#/definitions/Course"
+      terms:
+        type: array
+        items:
+          type: string
+  Term:
+    properties:
+      type:
+        type: string
+      term:
+        type: string
+      startDate:
+        type: string
+      endDate:
+        type: string
