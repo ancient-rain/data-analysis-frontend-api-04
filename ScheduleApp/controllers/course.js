@@ -70,9 +70,7 @@ exports.getCourseInfo = function (req, res, next) {
                 const newCourse = createCourseInfo(data, students);
 
                 res.status(200);
-                // REPLACE WHEN FIXING THE FRONT END APPLICATION
-                // res.json([newCourse]);
-                res.json(course);
+                res.json([newCourse]);
             }
         });
 };
