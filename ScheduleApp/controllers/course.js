@@ -6,61 +6,57 @@ exports.getCourseInfo = function (req, res, next) {
     const name = req.params.name.toUpperCase();
 
     COURSE.aggregate([{
-                $match: {
-                    $and: [{
-                            term: term
-                        },
-                        {
-                            name: name
-                        }
-                    ]
-                }
-            },
-            {
-                $lookup: {
-                    from: 'lookup',
-                    localField: 'name',
-                    foreignField: 'courses',
-                    as: 'students'
-                }
-            },
-            {
-                $lookup: {
-                    from: 'lookup',
-                    localField: 'students.username',
-                    foreignField: 'advisees',
-                    as: 'advisors'
-                }
-            },
-            {
-                $project: {
-                    advisors: {
-                        $filter: {
-                            input: '$advisors',
-                            as: 'advisor',
-                            cond: {
-                                $eq: ['$$advisor.term', term]
-                            }
-                        }
+            $match: {
+                $and: [{
+                        term: term
                     },
-                    students: {
-                        $filter: {
-                            input: '$students',
-                            as: 'students',
-                            cond: {
-                                $eq: ['$$students.term', term]
-                            }
-                        }
-                    },
-                    term: 1,
-                    name: 1,
-                    description: 1,
-                    instructor: 1,
-                    creditHours: 1,
-                    meetTimes: 1
-                }
+                    {
+                        name: name
+                    }
+                ]
             }
-        ],
+        }, {
+            $lookup: {
+                from: 'lookup',
+                localField: 'name',
+                foreignField: 'courses',
+                as: 'students'
+            }
+        }, {
+            $lookup: {
+                from: 'lookup',
+                localField: 'students.username',
+                foreignField: 'advisees',
+                as: 'advisors'
+            }
+        }, {
+            $project: {
+                advisors: {
+                    $filter: {
+                        input: '$advisors',
+                        as: 'advisor',
+                        cond: {
+                            $eq: ['$$advisor.term', term]
+                        }
+                    }
+                },
+                students: {
+                    $filter: {
+                        input: '$students',
+                        as: 'students',
+                        cond: {
+                            $eq: ['$$students.term', term]
+                        }
+                    }
+                },
+                term: 1,
+                name: 1,
+                description: 1,
+                instructor: 1,
+                creditHours: 1,
+                meetTimes: 1
+            }
+        }],
         (err, course) => {
             if (err) {
                 console.log(err);
