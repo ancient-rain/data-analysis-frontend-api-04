@@ -1,106 +1,164 @@
 const mongoose = require('mongoose');
 const COURSE = mongoose.model('Course');
+const FINAL_LENGTH = 400;
+const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const HOURS = [805, 900, 955, 1050, 1145, 1240, 1335, 1430, 1525, 1620];
 
 exports.getCourseInfo = function (req, res, next) {
     const term = req.params.term;
     const name = req.params.name.toUpperCase();
 
     COURSE.aggregate([{
-            $match: {
-                $and: [{
-                        term: term
-                    },
-                    {
-                        name: name
-                    }
-                ]
-            }
-        }, {
-            $lookup: {
-                from: 'lookup',
-                localField: 'name',
-                foreignField: 'name',
-                as: 'terms'
-            } 
-        }, {
-            $lookup: {
-                from: 'lookup',
-                localField: 'instructor',
-                foreignField: 'username',
-                as: 'prof'
-            } 
-        },{
-            $lookup: {
-                from: 'lookup',
-                localField: 'name',
-                foreignField: 'courses',
-                as: 'students'
-            }
-        }, {
-            $lookup: {
-                from: 'lookup',
-                localField: 'students.username',
-                foreignField: 'advisees',
-                as: 'advisors'
-            }
-        }, {
-            $project: {
-                advisors: {
-                    $filter: {
-                        input: '$advisors',
-                        as: 'advisor',
-                        cond: {
-                            $eq: ['$$advisor.term', term]
-                        }
-                    }
+        $match: {
+            $and: [{
+                    term: term
                 },
-                students: {
-                    $filter: {
-                        input: '$students',
-                        as: 'students',
-                        cond: {
-                            $eq: ['$$students.term', term]
-                        }
+                {
+                    name: name
+                }
+            ]
+        }
+    }, {
+        $lookup: {
+            from: 'lookup',
+            localField: 'name',
+            foreignField: 'name',
+            as: 'terms'
+        }
+    }, {
+        $lookup: {
+            from: 'lookup',
+            localField: 'instructor',
+            foreignField: 'username',
+            as: 'prof'
+        }
+    }, {
+        $lookup: {
+            from: 'lookup',
+            localField: 'name',
+            foreignField: 'courses',
+            as: 'students'
+        }
+    }, {
+        $lookup: {
+            from: 'lookup',
+            localField: 'students.username',
+            foreignField: 'advisees',
+            as: 'advisors'
+        }
+    }, {
+        $project: {
+            advisors: {
+                $filter: {
+                    input: '$advisors',
+                    as: 'advisor',
+                    cond: {
+                        $eq: ['$$advisor.term', term]
                     }
-                },
-                terms: 1,
-                term: 1,
-                name: 1,
-                description: 1,
-                instructor: {
-                    $filter: {
-                        input: '$prof',
-                        as: 'instructor',
-                        cond: {
-                            $eq: ['$$instructor.term', term]
-                        }
+                }
+            },
+            students: {
+                $filter: {
+                    input: '$students',
+                    as: 'students',
+                    cond: {
+                        $eq: ['$$students.term', term]
                     }
-                },
-                creditHours: 1,
-                meetTimes: 1
-            }
-        }],
-        (err, course) => {
-            if (err) {
-                console.log(err);
-            } else {
-                const data = course[0];
-                const studentMap = createStudentMap(data.students);
-                const terms = getCourseTerms(data.terms);
-                const instructor = getCourseInstructor(data.instructor[0]);
+                }
+            },
+            terms: 1,
+            term: 1,
+            name: 1,
+            description: 1,
+            instructor: {
+                $filter: {
+                    input: '$prof',
+                    as: 'instructor',
+                    cond: {
+                        $eq: ['$$instructor.term', term]
+                    }
+                }
+            },
+            creditHours: 1,
+            meetTimes: 1
+        }
+    }], (err, course) => {
+        if (err) {
+            console.log(err);
+        } else {
+            const data = course[0];
+            const studentMap = createStudentMap(data.students);
+            const terms = getCourseTerms(data.terms);
+            const instructor = getCourseInstructor(data.instructor[0]);
 
-                updateMap(studentMap, data.advisors);
-                const students = getStudentsCourseInfo(data.students, studentMap);
-                const newCourse = createCourseInfo(data, students, terms, instructor);
+            updateMap(studentMap, data.advisors);
+            const students = getStudentsCourseInfo(data.students, studentMap);
+            const newCourse = createCourseInfo(data, students, terms, instructor);
 
-                res.status(200);
-                res.json([newCourse]);
-            }
-        });
+            res.status(200);
+            res.json([newCourse]);
+        }
+    });
 };
 
 exports.getCoursesInfo = function (req, res, next) {
+    const term = req.params.term;
+    const name = req.params.name.toUpperCase();
+    const course = new RegExp('.*' + name + '.*');
 
+    COURSE.aggregate([{
+        $match: {
+            $and: [{
+                    term: term
+                },
+                {
+                    name: course
+                }
+            ]
+        }
+    }, {
+        $lookup: {
+            from: 'lookup',
+            localField: 'name',
+            foreignField: 'courses',
+            as: 'students'
+        }
+    }, {
+        $lookup: {
+            from: 'lookup',
+            localField: 'name',
+            foreignField: 'name',
+            as: 'terms'
+        }
+    }, {
+        $project: {
+            students: {
+                $filter: {
+                    input: '$students',
+                    as: 'students',
+                    cond: {
+                        $eq: ['$$students.term', term]
+                    }
+                }
+            },
+            terms: 1,
+            term: 1,
+            name: 1,
+            description: 1,
+            instructor: 1,
+            creditHours: 1,
+            meetTimes: 1
+        }
+    }], (err, courses) => {
+        if (err) {
+            console.log(err);
+        } else {
+            const newCourses = getCourseData(courses);
+
+            res.status(200);
+            res.json(newCourses);
+        }
+    });
 };
 
 function createCourseInfo(data, students, terms, instructor) {
@@ -114,6 +172,21 @@ function createCourseInfo(data, students, terms, instructor) {
         meetTimes: data.meetTimes,
         terms: terms,
         students: students
+    };
+}
+
+function createCoursesInfo(data, numStudents, terms, filteredTimes) {
+    return {
+        _id: data._id,
+        term: data.term,
+        name: data.name,
+        description: data.description,
+        creditHours: data.creditHours,
+        meetTimes: data.meetTimes,
+        instructor: data.instructor,
+        numStudents: numStudents,
+        filteredTimes: filteredTimes.trim(),
+        terms: terms
     };
 }
 
@@ -173,6 +246,72 @@ function getStudentsCourseInfo(students, map) {
         });
     }
     return studentsArr;
+}
+
+function getCourseData(courses) {
+    const coursesArr = [];
+    for (let i = 0; i < courses.length; i++) {
+        const data = courses[i];
+        const numStudents = data.students.length;
+        const terms = getCourseTerms(data.terms);
+        const filteredTimes = getClassTime(data.meetTimes);
+        const course = createCoursesInfo(data, numStudents, terms, filteredTimes);
+        coursesArr.push(course);
+    }
+    return coursesArr;
+}
+
+function getClassTime(meetTimes) {
+    const courseTime = meetTimes.replace(/  /g, ' ');
+    const times = courseTime.split(' ');
+    return filterClass(courseTime, times);
+}
+
+function filterClass(courseTime, times) {
+    let time = '';
+    for (let i = 0; i < times.length; i = i + 2) {
+        const days = times[i];
+        const hours = times[i + 1].split('-');
+        const start = parseInt(hours[0], 10);
+        const end = parseInt(hours[1], 10);
+
+        if (days.length <= 1) {
+            const isFinal = end - start >= FINAL_LENGTH;
+            if (!isFinal) {
+                time += getFilteredClass(days, start, end);
+            }
+        } else {
+            time += getFilteredClass(days, start, end);
+        }
+    }
+    return time;
+}
+
+function getFilteredClass(days, start, end) {
+    let isStarted = false;
+    let hoursStr = '';
+
+    for (let i = 0; i < HOURS.length; i++) {
+        const curHour = HOURS[i];
+        if (start <= curHour && !isStarted) {
+            isStarted = true;
+            hoursStr += i + 1;
+        } else if (end <= curHour && isStarted) {
+            if (hoursStr !== `${i}`) {
+                hoursStr += `-${i}`;
+            }
+            hoursStr += ' ';
+            break;
+        } else if (isStarted && i + 1 >= HOURS.length) {
+            hoursStr += `-${i + 1}`;
+            hoursStr += ' ';
+            break;
+        }
+    }
+
+    const classStr = `${days}/${hoursStr}`;
+
+    return classStr === '/' ? 'TBA' : classStr;
 }
 
 function createMajorsString(majors) {

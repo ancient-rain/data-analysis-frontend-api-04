@@ -72,6 +72,8 @@ router.get('/faculty/:username/:term', facultyController.getFacultyInfoByTerm);
 
 router.get('/course/:name/:term', courseController.getCourseInfo);
 
+router.get('/courses/:name/:term', courseController.getCoursesInfo);
+
 
 router.get('/course/:name/:term/students', function (req, res) {
     const term = req.params.term;
@@ -312,75 +314,5 @@ router.route('/faculty/:username').get((req, res) => {
         }
     });
 });
-
-router.route('/courses/:name/:term')
-    .get((req, res) => {
-        const term = req.params.term;
-        const name = req.params.name.toUpperCase();
-        const course = new RegExp('.*' + name + '.*');
-        COURSE.aggregate([{
-            $match: {
-                $and: [
-                    {
-                        term: term
-                    },
-                    {
-                        name: course
-                    }]
-            }
-        },
-        {
-            $lookup: {
-                from: 'lookup',
-                localField: 'instructor',
-                foreignField: 'username',
-                as: 'advisor'
-            }
-        },
-        {
-            $lookup: {
-                from: 'lookup',
-                localField: 'name',
-                foreignField: 'courses',
-                as: 'students'
-            }
-        },
-        {
-            $project: {
-                advisor: {
-                    $filter: {
-                        input: '$advisor',
-                        as: 'advisor',
-                        cond: {
-                            $eq: ['$$advisor.term', term]
-                        }
-                    }
-                },
-                students: {
-                    $filter: {
-                        input: '$students',
-                        as: 'students',
-                        cond: {
-                            $eq: ['$$students.term', term]
-                        }
-                    }
-                },
-                term: 1,
-                name: 1,
-                description: 1,
-                instructor: 1,
-                creditHours: 1,
-                meetTimes: 1
-            }
-        }],
-            (err, course) => {
-                if (err) {
-                    console.log(err);
-                } else {
-                    res.status(200);
-                    res.json(course);
-                }
-            });
-    });
 
 module.exports = router;
