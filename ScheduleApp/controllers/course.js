@@ -19,6 +19,20 @@ exports.getCourseInfo = function (req, res, next) {
             $lookup: {
                 from: 'lookup',
                 localField: 'name',
+                foreignField: 'name',
+                as: 'terms'
+            } 
+        }, {
+            $lookup: {
+                from: 'lookup',
+                localField: 'instructor',
+                foreignField: 'username',
+                as: 'prof'
+            } 
+        },{
+            $lookup: {
+                from: 'lookup',
+                localField: 'name',
                 foreignField: 'courses',
                 as: 'students'
             }
@@ -49,10 +63,19 @@ exports.getCourseInfo = function (req, res, next) {
                         }
                     }
                 },
+                terms: 1,
                 term: 1,
                 name: 1,
                 description: 1,
-                instructor: 1,
+                instructor: {
+                    $filter: {
+                        input: '$prof',
+                        as: 'instructor',
+                        cond: {
+                            $eq: ['$$instructor.term', term]
+                        }
+                    }
+                },
                 creditHours: 1,
                 meetTimes: 1
             }
@@ -63,11 +86,12 @@ exports.getCourseInfo = function (req, res, next) {
             } else {
                 const data = course[0];
                 const studentMap = createStudentMap(data.students);
+                const terms = getCourseTerms(data.terms);
+                const instructor = getCourseInstructor(data.instructor[0]);
 
                 updateMap(studentMap, data.advisors);
-
                 const students = getStudentsCourseInfo(data.students, studentMap);
-                const newCourse = createCourseInfo(data, students);
+                const newCourse = createCourseInfo(data, students, terms, instructor);
 
                 res.status(200);
                 res.json([newCourse]);
@@ -79,15 +103,16 @@ exports.getCoursesInfo = function (req, res, next) {
 
 };
 
-function createCourseInfo(data, students) {
+function createCourseInfo(data, students, terms, instructor) {
     return {
         _id: data._id,
         term: data.term,
         name: data.name,
         description: data.description,
-        instructor: data.instructor,
+        instructor: instructor,
         creditHours: data.creditHours,
         meetTimes: data.meetTimes,
+        terms: terms,
         students: students
     };
 }
@@ -112,6 +137,21 @@ function updateMap(map, advisors) {
             }
         }
     }
+}
+
+function getCourseInstructor(instructor) {
+    return {
+        username: instructor.username,
+        dept: instructor.dept
+    };
+}
+
+function getCourseTerms(terms) {
+    const termsArr = [];
+    for (let i = 0; i < terms.length; i++) {
+        termsArr.push(terms[i].term);
+    }
+    return termsArr;
 }
 
 function getStudentsCourseInfo(students, map) {
