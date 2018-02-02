@@ -38,9 +38,7 @@ const app = express();
 
 const dbURI = 'mongodb://localhost/schedule';
 
-mongoose.connect(dbURI, {
-  useMongoClient: true
-}, err => {
+mongoose.connect(dbURI, err => {
   if (err) {
     console.log(`ERROR connecting to ${dbURI}. ${err}`);
   } else {
