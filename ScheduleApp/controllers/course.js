@@ -7,6 +7,8 @@ const HOURS = [805, 900, 955, 1050, 1145, 1240, 1335, 1430, 1525, 1620];
 exports.getCourseInfo = function (req, res, next) {
     const term = req.params.term;
     const name = req.params.name.toUpperCase();
+    const course = new RegExp('.*' + name + '.*');
+
 
     COURSE.aggregate([{
         $match: {
@@ -14,7 +16,7 @@ exports.getCourseInfo = function (req, res, next) {
                     term: term
                 },
                 {
-                    name: name
+                    name: course
                 }
             ]
         }
@@ -87,6 +89,7 @@ exports.getCourseInfo = function (req, res, next) {
             console.log(err);
         } else {
             const data = course[0];
+            console.log(data);
             const studentMap = createStudentMap(data.students);
             const terms = getCourseTerms(data.terms);
             const instructor = getCourseInstructor(data.instructor[0]);
