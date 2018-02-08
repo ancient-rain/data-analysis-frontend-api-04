@@ -170,7 +170,6 @@ router.route('/courses/:name/students/not-taken')
             if (err) {
                 console.log(err);
             } else {
-                console.log('here');
                 returnStudents = usernames.values;
             }
         });
@@ -187,7 +186,6 @@ router.route('/courses/:name/students/not-taken')
             if (err) {
                 console.log(err);
             } else {
-                console.log('here');
                 takenStudents = usernames.values;
                 if (returnStudents == null || takenStudents == null) {
                     console.log('Error: Unable to find list of students who haven\'t taken course');
@@ -225,8 +223,30 @@ router.route('/courses/:name/students/:year/:term')
         }).select('username');
     });
 
-router.route('/groups/:term/:usernames').get((req, res) => {
+router.route('/groups/:term/*').get((req, res) => {
+    const names = req.params[0].split('/');
 
+    for(let i = 0; i < names.length; i++) {
+        names[i] = names[i].toUpperCase();
+    }
+
+    STUDENT.find({
+        $and: [{
+            username: {$in: names}
+        },
+        {
+            term: req.params.term
+
+        }
+        ]
+    }, (err, students) => {
+        if (err) {
+            console.log(err);
+        } else {
+            res.status(200);
+            res.json(students);
+        }
+    });
 });
 
 // MAY NOT NEED AS A ROUTE ANYMORE
@@ -284,11 +304,11 @@ router.route('/term/:term').get((req, res) => {
 
     TERM.find({
         $and: [{
-                term: req.params.term
-            },
-            {
-                type: 'Term Info'
-            }
+            term: req.params.term
+        },
+        {
+            type: 'Term Info'
+        }
         ]
     }, (err, term) => {
         if (err) {
