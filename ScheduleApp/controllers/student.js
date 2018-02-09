@@ -31,6 +31,13 @@ exports.getStudentInfoByTerm = function (req, res, next) {
             from: "lookup",
             localField: "username",
             foreignField: "username",
+            as: "userTerms"
+        }
+    }, {
+        $lookup: {
+            from: "lookup",
+            localField: "userTerms.term",
+            foreignField: "termKey",
             as: "terms"
         }
     }, {
@@ -51,7 +58,7 @@ exports.getStudentInfoByTerm = function (req, res, next) {
                     }
                 }
             },
-            "terms.term": 1,
+            terms: 1,
             courses: {
                 $filter: {
                     input: '$courseData',
@@ -108,10 +115,33 @@ function getTermsStudentInfoTerm(terms) {
     const termsArr = [];
 
     for (let i = 0; i < terms.length; i++) {
-        termsArr.push(terms[i].term);
+        const term = terms[i];
+        const termName = getTermName(term.termKey);
+        termsArr.push({
+            _id: term._id,
+            term: term.termKey,
+            name: termName,
+            startDate: term.startDate,
+            endDate: term.endDate
+        });
     }
 
     return termsArr;
+}
+
+function getTermName(key) {
+    const year = key.substring(0, 4);
+    const term = key.substring(4);
+    switch(term) {
+        case '10':
+            return `Fall ${year}`;
+        case '20':
+            return `Winter ${year}`;
+        case '30':
+            return `Spring ${year}`;
+        default:
+            return `Summer ${year}`;
+    }
 }
 
 function getCoursesStudentInfoTerm(courses) {
