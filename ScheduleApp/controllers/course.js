@@ -9,7 +9,6 @@ exports.getCourseInfo = function (req, res, next) {
     const name = req.params.name.toUpperCase();
     const course = new RegExp('.*' + name + '.*');
 
-
     COURSE.aggregate([{
         $match: {
             $and: [{
@@ -25,6 +24,13 @@ exports.getCourseInfo = function (req, res, next) {
             from: 'lookup',
             localField: 'name',
             foreignField: 'name',
+            as: 'courseTerms'
+        }
+    }, {
+        $lookup: {
+            from: 'lookup',
+            localField: 'courseTerms.term',
+            foreignField: 'termKey',
             as: 'terms'
         }
     }, {
@@ -131,6 +137,13 @@ exports.getCoursesInfo = function (req, res, next) {
             from: 'lookup',
             localField: 'name',
             foreignField: 'name',
+            as: 'coursesTerms'
+        }
+    },  {
+        $lookup: {
+            from: 'lookup',
+            localField: 'coursesTerms.term',
+            foreignField: 'termKey',
             as: 'terms'
         }
     }, {
@@ -224,10 +237,35 @@ function getCourseInstructor(instructor) {
 
 function getCourseTerms(terms) {
     const termsArr = [];
+
     for (let i = 0; i < terms.length; i++) {
-        termsArr.push(terms[i].term);
+        const term = terms[i];
+        const termName = getTermName(term.termKey);
+        termsArr.push({
+            _id: term._id,
+            term: term.termKey,
+            name: termName,
+            startDate: term.startDate,
+            endDate: term.endDate
+        });
     }
+
     return termsArr;
+}
+
+function getTermName(key) {
+    const year = key.substring(0, 4);
+    const term = key.substring(4);
+    switch(term) {
+        case '10':
+            return `Fall ${year}`;
+        case '20':
+            return `Winter ${year}`;
+        case '30':
+            return `Spring ${year}`;
+        default:
+            return `Summer ${year}`;
+    }
 }
 
 function getStudentsCourseInfo(students, map) {
