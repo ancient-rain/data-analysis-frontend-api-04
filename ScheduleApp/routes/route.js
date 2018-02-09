@@ -66,8 +66,56 @@ router.use((req, res, next) => {
     next();
 });
 
+/**
+ * @swagger
+ * "/student/{username}/{term}":
+ *   get:
+ *     parameters:
+ *     - name: "username"
+ *       in: path
+ *       description: "Username of student"
+ *       required: true
+ *       type: "string"
+ *     - name: "term"
+ *       in: path
+ *       description: "Term to look for"
+ *       required: true
+ *       type: "string"
+ *     responses:
+ *       200:
+ *         description: "Student info by term found"
+ *         schema:
+ *           items:
+ *             $ref: "#/definitions/StudentInfoTerm"
+ *       404:
+ *         description: "Could not find student info by term"
+ */
 router.get('/student/:username/:term', studentController.getStudentInfoByTerm);
 
+/**
+ * @swagger
+ * "/faculty/{username}/{term}":
+ *   get:
+ *     parameters:
+ *     - name: "username"
+ *       in: path
+ *       description: "Username of faculty member"
+ *       required: true
+ *       type: "string"
+ *     - name: "term"
+ *       in: path
+ *       description: "Term to look for"
+ *       required: true
+ *       type: "string"
+ *     responses:
+ *       200:
+ *         description: "Faculty info by term found"
+ *         schema:
+ *           items:
+ *             $ref: "#/definitions/FacultyInfoTerm"
+ *       404:
+ *         description: "Could not find faculty info by term"
+ */
 router.get('/faculty/:username/:term', facultyController.getFacultyInfoByTerm);
 
 router.get('/course/:name/:term', courseController.getCourseInfo);

@@ -9,17 +9,19 @@ const bodyParser = require('body-parser');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJSDoc = require('swagger-jsdoc');
 
-const spec = swaggerJSDoc({
+const swaggerSpec = swaggerJSDoc({
   swaggerDefinition: {
     info: {
       title: 'ScheduleApp',
-      version: '1.0.0'
+      version: '1.0.0',
+      description: 'Web Services Development project to bring multiple different Rose-Hulman information into one collective dataset'
     },
-    produces: ['application/json'],
-    consumes: ['application/json']
+    host: 'localhost:3000',
+    basePath: '/'
   },
   apis: [
-    'routes/*.js',
+    './routes/*.js',
+    'definitions.yaml'
   ]
 });
 
@@ -64,7 +66,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 // app.use('/users', users);
 app.use('/', schedules);
 
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(spec));
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+app.get('/swagger.json', function (req, res) {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+})
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
