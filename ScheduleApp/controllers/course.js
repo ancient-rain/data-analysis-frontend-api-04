@@ -92,20 +92,24 @@ exports.getCourseInfo = function (req, res, next) {
         }
     }], (err, course) => {
         if (err) {
-            console.log(err);
+            handleError('Bad request!', res, 400, next);
         } else {
-            const data = course[0];
-            console.log(data);
-            const studentMap = createStudentMap(data.students);
-            const terms = getCourseTerms(data.terms);
-            const instructor = getCourseInstructor(data.instructor[0]);
+            try {
+                const data = course[0];
+                console.log(data);
+                const studentMap = createStudentMap(data.students);
+                const terms = getCourseTerms(data.terms);
+                const instructor = getCourseInstructor(data.instructor[0]);
 
-            updateMap(studentMap, data.advisors);
-            const students = getStudentsCourseInfo(data.students, studentMap);
-            const newCourse = createCourseInfo(data, students, terms, instructor);
+                updateMap(studentMap, data.advisors);
+                const students = getStudentsCourseInfo(data.students, studentMap);
+                const newCourse = createCourseInfo(data, students, terms, instructor);
 
-            res.status(200);
-            res.json([newCourse]);
+                res.status(200);
+                res.json([newCourse]);
+            } catch (error) {
+                handleError('Could not find course information for given term', res, 404, next);
+            }
         }
     });
 };
@@ -139,7 +143,7 @@ exports.getCoursesInfo = function (req, res, next) {
             foreignField: 'name',
             as: 'coursesTerms'
         }
-    },  {
+    }, {
         $lookup: {
             from: 'lookup',
             localField: 'coursesTerms.term',
@@ -167,12 +171,15 @@ exports.getCoursesInfo = function (req, res, next) {
         }
     }], (err, courses) => {
         if (err) {
-            console.log(err);
+            handleError('Bad request!', res, 400, next);
         } else {
-            const newCourses = getCourseData(courses);
-
-            res.status(200);
-            res.json(newCourses);
+            try {
+                const newCourses = getCourseData(courses);
+                res.status(200);
+                res.json(newCourses);
+            } catch (error) {
+                handleError('Could not find courses infromation for given term', res, 404, next);
+            }
         }
     });
 };
@@ -256,7 +263,7 @@ function getCourseTerms(terms) {
 function getTermName(key) {
     const year = key.substring(0, 4);
     const term = key.substring(4);
-    switch(term) {
+    switch (term) {
         case '10':
             return `Fall ${year}`;
         case '20':
