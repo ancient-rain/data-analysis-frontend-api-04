@@ -29,6 +29,7 @@ require('./models/student');
 require('./models/faculty');
 require('./models/term');
 require('./models/course');
+require('./models/group');
 
 const index = require('./routes/index');
 const users = require('./routes/users');

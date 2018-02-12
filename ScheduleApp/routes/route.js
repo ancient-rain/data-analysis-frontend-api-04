@@ -5,6 +5,7 @@ const STUDENT = mongoose.model('Student');
 const FACULTY = mongoose.model('Faculty');
 const TERM = mongoose.model('Term');
 const COURSE = mongoose.model('Course');
+const GROUP = mongoose.model('Group');
 const studentController = require('../controllers/student');
 const facultyController = require('../controllers/faculty');
 const courseController = require('../controllers/course');
@@ -67,6 +68,8 @@ router.use((req, res, next) => {
 });
 
 router.get('/student/:username/:term', studentController.getStudentInfoByTerm);
+
+router.get('/students/:term/*', studentController.getStudentsBySearch);
 
 router.get('/faculty/:username/:term', facultyController.getFacultyInfoByTerm);
 
@@ -223,28 +226,93 @@ router.route('/courses/:name/students/:year/:term')
         }).select('username');
     });
 
-router.route('/groups/:term/*').get((req, res) => {
-    const names = req.params[0].split('/');
+// gets list of all groups for given student in given term
+router.route('/groups/:username/:term').get((req, res) => {
 
-    for(let i = 0; i < names.length; i++) {
-        names[i] = names[i].toUpperCase();
-    }
-
-    STUDENT.find({
+    GROUP.find({
         $and: [{
-            username: {$in: names}
+            students: req.params.username
         },
         {
             term: req.params.term
 
         }
         ]
-    }, (err, students) => {
+    }, (err, groups) => {
         if (err) {
             console.log(err);
         } else {
             res.status(200);
-            res.json(students);
+            res.json(groups);
+        }
+    });
+});
+
+router.route('/groups/')
+
+router.route('/groups/:username/:term/:id').get((req, res) => {
+    const term = req.params.term;
+
+    GROUP.aggregate([{
+        $match: {
+            $and: [{
+                students: req.params.username
+            },
+            {
+                term: req.params.term
+
+            },
+            {
+                _id: req.params.id
+            }
+            ]
+        }
+    },
+    {
+        $lookup: {
+            from: "lookup",
+            localField: "students",
+            foreignField: "username",
+            as: "studentsData"
+        }
+    }, {
+        $lookup: {
+            from: "lookup",
+            localField: "courses",
+            foreignField: "name",
+            as: "courseData"
+        }
+    },{
+        $project: {
+            name: 1,
+            term: 1,
+            students: {
+                $filter: {
+                    input: '$students',
+                    as: 'students',
+                    cond: {
+                        $eq: ['$$students.term', term],
+                    }
+                }
+            },
+            "terms.term": 1,
+            courses: {
+                $filter: {
+                    input: '$courseData',
+                    as: 'courses',
+                    cond: {
+                        $eq: ['$$courses.term', term]
+                    }
+                }
+            }
+        }
+    }],
+    (err, groups) => {
+        if (err) {
+            console.log(err);
+        } else {
+            res.status(200);
+            res.json(groups);
         }
     });
 });
