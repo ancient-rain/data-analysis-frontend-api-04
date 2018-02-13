@@ -67,6 +67,30 @@ router.use((req, res, next) => {
     next();
 });
 
+/**
+ * @swagger
+ * "/student/{username}/{term}":
+ *   get:
+ *     parameters:
+ *     - name: "username"
+ *       in: path
+ *       description: "Username of student"
+ *       required: true
+ *       type: "string"
+ *     - name: "term"
+ *       in: path
+ *       description: "Term to look for"
+ *       required: true
+ *       type: "string"
+ *     responses:
+ *       200:
+ *         description: "Student info by term found"
+ *         schema:
+ *           items:
+ *             $ref: "#/definitions/StudentInfoTerm"
+ *       404:
+ *         description: "Could not find student info by term"
+ */
 router.get('/student/:username/:term', studentController.getStudentInfoByTerm);
 
 router.get('/students/:term/*', studentController.getStudentsBySearch);

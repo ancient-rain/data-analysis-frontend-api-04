@@ -9,7 +9,6 @@ exports.getCourseInfo = function (req, res, next) {
     const name = req.params.name.toUpperCase();
     const course = new RegExp('.*' + name + '.*');
 
-
     COURSE.aggregate([{
         $match: {
             $and: [{
@@ -25,6 +24,13 @@ exports.getCourseInfo = function (req, res, next) {
             from: 'lookup',
             localField: 'name',
             foreignField: 'name',
+            as: 'courseTerms'
+        }
+    }, {
+        $lookup: {
+            from: 'lookup',
+            localField: 'courseTerms.term',
+            foreignField: 'termKey',
             as: 'terms'
         }
     }, {
@@ -86,20 +92,24 @@ exports.getCourseInfo = function (req, res, next) {
         }
     }], (err, course) => {
         if (err) {
-            console.log(err);
+            handleError('Bad request!', res, 400, next);
         } else {
-            const data = course[0];
-            console.log(data);
-            const studentMap = createStudentMap(data.students);
-            const terms = getCourseTerms(data.terms);
-            const instructor = getCourseInstructor(data.instructor[0]);
+            try {
+                const data = course[0];
+                console.log(data);
+                const studentMap = createStudentMap(data.students);
+                const terms = getCourseTerms(data.terms);
+                const instructor = getCourseInstructor(data.instructor[0]);
 
-            updateMap(studentMap, data.advisors);
-            const students = getStudentsCourseInfo(data.students, studentMap);
-            const newCourse = createCourseInfo(data, students, terms, instructor);
+                updateMap(studentMap, data.advisors);
+                const students = getStudentsCourseInfo(data.students, studentMap);
+                const newCourse = createCourseInfo(data, students, terms, instructor);
 
-            res.status(200);
-            res.json([newCourse]);
+                res.status(200);
+                res.json([newCourse]);
+            } catch (error) {
+                handleError('Could not find course information for given term', res, 404, next);
+            }
         }
     });
 };
@@ -131,6 +141,13 @@ exports.getCoursesInfo = function (req, res, next) {
             from: 'lookup',
             localField: 'name',
             foreignField: 'name',
+            as: 'coursesTerms'
+        }
+    }, {
+        $lookup: {
+            from: 'lookup',
+            localField: 'coursesTerms.term',
+            foreignField: 'termKey',
             as: 'terms'
         }
     }, {
@@ -154,12 +171,15 @@ exports.getCoursesInfo = function (req, res, next) {
         }
     }], (err, courses) => {
         if (err) {
-            console.log(err);
+            handleError('Bad request!', res, 400, next);
         } else {
-            const newCourses = getCourseData(courses);
-
-            res.status(200);
-            res.json(newCourses);
+            try {
+                const newCourses = getCourseData(courses);
+                res.status(200);
+                res.json(newCourses);
+            } catch (error) {
+                handleError('Could not find courses infromation for given term', res, 404, next);
+            }
         }
     });
 };
@@ -224,10 +244,35 @@ function getCourseInstructor(instructor) {
 
 function getCourseTerms(terms) {
     const termsArr = [];
+
     for (let i = 0; i < terms.length; i++) {
-        termsArr.push(terms[i].term);
+        const term = terms[i];
+        const termName = getTermName(term.termKey);
+        termsArr.push({
+            _id: term._id,
+            term: term.termKey,
+            name: termName,
+            startDate: term.startDate,
+            endDate: term.endDate
+        });
     }
+
     return termsArr;
+}
+
+function getTermName(key) {
+    const year = key.substring(0, 4);
+    const term = key.substring(4);
+    switch (term) {
+        case '10':
+            return `Fall ${year}`;
+        case '20':
+            return `Winter ${year}`;
+        case '30':
+            return `Spring ${year}`;
+        default:
+            return `Summer ${year}`;
+    }
 }
 
 function getStudentsCourseInfo(students, map) {
