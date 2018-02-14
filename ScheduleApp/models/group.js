@@ -6,16 +6,24 @@ const groupSchema = new mongoose.Schema({
         type: String
     },
     name: {
-        type: String
+        type: String,
+        required: true
+    },
+    class: {
+        type: String,
+        required: true
     },
     term: {
-        type: String
+        type: String,
+        required: true
     },
     students: {
-        type: [String]
+        type: [String],
+        required: true
     },
     faculty: {
-        type: [String]
+        type: [String],
+        required: true
     }
 }, {
     collection: 'lookup'
