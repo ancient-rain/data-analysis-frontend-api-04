@@ -243,7 +243,7 @@ function getGroupsStudentInfoTerm(groups, term) {
                 groupName: group.groupName,
                 faculty: group.faculty,
                 students: group.students,
-                class: group.class
+                className: group.className
             });
         }
     }

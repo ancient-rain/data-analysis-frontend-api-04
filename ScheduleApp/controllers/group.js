@@ -170,7 +170,8 @@ function getCoursesGroupInfoTerm(courses, term) {
                 name: course.name,
                 description: course.description,
                 meetTimes: course.meetTimes,
-                instructor: course.instructor
+                instructor: course.instructor,
+                creditHours: course.creditHours
             });
         }
     }
