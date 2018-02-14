@@ -9,6 +9,7 @@ const GROUP = mongoose.model('Group');
 const studentController = require('../controllers/student');
 const facultyController = require('../controllers/faculty');
 const courseController = require('../controllers/course');
+const groupController = require('../controllers/group');
 
 router.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -50,6 +51,10 @@ router.get('/faculty/:username/:term', facultyController.getFacultyInfoByTerm);
 router.get('/course/:name/:term', courseController.getCourseInfo);
 
 router.get('/courses/:name/:term', courseController.getCoursesInfo);
+
+router.route('/groups/:username/:term').get(groupController.getStudentsGroupInfoByTerm);
+
+
 
 
 router.get('/course/:name/:term/students', function (req, res) {
@@ -177,32 +182,6 @@ router.route('/courses/:name/students/not-taken')
 
         });
     });
-
-// gets list of all groups for given student in given term
-router.route('/groups/:username/:term').get((req, res) => {
-
-    GROUP.find({
-        $and: [{
-                type: 'Group'
-            },
-            {
-                term: req.params.term
-            },
-            {
-                students: {
-                    $in: [req.params.username]
-                }
-            }
-        ]
-    }, (err, groups) => {
-        if (err) {
-            console.log(err);
-        } else {
-            res.status(200);
-            res.json(groups);
-        }
-    });
-});
 
 router.route('/groups/')
     .post((req, res) => {

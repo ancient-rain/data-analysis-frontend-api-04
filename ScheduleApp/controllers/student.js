@@ -78,7 +78,6 @@ exports.getStudentsBySearch = function (req, res, next) {
     });
 };
 
-
 exports.getStudentInfoByTerm = function (req, res, next) {
     const username = req.params.username.toUpperCase();
     const term = req.params.term;
@@ -240,7 +239,7 @@ function getGroupsStudentInfoTerm(groups, term) {
         const group = groups[i];
         if (group.term === term) {
             groupsArr.push({
-                _id: group.id,
+                _id: group._id,
                 groupName: group.groupName,
                 faculty: group.faculty,
                 students: group.students,
