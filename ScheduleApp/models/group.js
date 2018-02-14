@@ -5,7 +5,7 @@ const groupSchema = new mongoose.Schema({
     type: {
         type: String
     },
-    name: {
+    groupName: {
         type: String,
         required: true
     },

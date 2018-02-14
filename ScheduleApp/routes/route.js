@@ -12,7 +12,7 @@ const courseController = require('../controllers/course');
 
 router.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With');
     next();
 });
@@ -219,7 +219,7 @@ router.route('/groups/')
 
         GROUP.create({
             type: 'Group',
-            name: req.body.name,
+            groupName: req.body.groupName,
             term: req.body.term,
             class: req.body.class,
             students: students,
