@@ -200,7 +200,7 @@ router.route('/groups/')
             type: 'Group',
             groupName: req.body.groupName,
             term: req.body.term,
-            class: req.body.class,
+            className: req.body.className,
             students: students,
             faculty: faculty
         }, (err, group) => {

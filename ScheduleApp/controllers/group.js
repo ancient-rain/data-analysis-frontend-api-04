@@ -49,7 +49,7 @@ exports.getStudentsGroupInfoByTerm = function (req, res, next) {
             termInfo: 1,
             type: 1,
             groupName: 1,
-            class: 1,
+            className: 1,
             courses: {
                 $filter: {
                     input: '$courseData',
@@ -106,7 +106,7 @@ function createGroupInfoTerm(data, term, students, faculty, courses) {
     return {
         _id: data._id,
         groupName: data.groupName,
-        class: data.class,
+        className: data.className,
         term: term,
         students: students,
         faculty: faculty,
