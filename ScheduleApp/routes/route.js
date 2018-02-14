@@ -52,7 +52,7 @@ router.get('/course/:name/:term', courseController.getCourseInfo);
 
 router.get('/courses/:name/:term', courseController.getCoursesInfo);
 
-router.route('/groups/:username/:term').get(groupController.getStudentsGroupInfoByTerm);
+router.route('/groups/:id').get(groupController.getGroupById);
 
 
 
