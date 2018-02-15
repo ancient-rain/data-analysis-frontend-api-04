@@ -44,6 +44,8 @@ router.use((req, res, next) => {
  */
 router.get('/student/:username/:term', studentController.getStudentInfoByTerm);
 
+router.get('/student/:username', studentController.getStudentInfo);
+
 router.get('/students/:term/*', studentController.getStudentsBySearch);
 
 router.get('/faculty/:username/:term', facultyController.getFacultyInfoByTerm);
@@ -78,21 +80,6 @@ router.get('/course/:name/:term/students', function (req, res) {
         } else {
             res.status(200);
             res.json(students);
-        }
-    });
-});
-
-router.route('/student/:username').get((req, res) => {
-    const username = req.params.username.toUpperCase();
-
-    STUDENT.find({
-        username: username
-    }, (err, student) => {
-        if (err) {
-            console.log(err);
-        } else {
-            res.status(200);
-            res.json(student);
         }
     });
 });

@@ -178,6 +178,70 @@ exports.getStudentInfoByTerm = function (req, res, next) {
     });
 };
 
+exports.getStudentInfo = function (req, res, next) {
+    const username = req.params.username.toUpperCase();
+
+    STUDENT.aggregate([{
+        $match: {
+            username: username
+        }
+    }, {
+        $lookup: {
+            from: 'lookup',
+            localField: 'courses',
+            foreignField: 'name',
+            as: 'courses'
+        }
+    }, {
+        $lookup: {
+            from: 'lookup',
+            localField: 'term',
+            foreignField: 'termKey',
+            as: 'term'
+        }
+    }, {
+        $project: {
+            username: 1,
+            name: 1,
+            term: 1,
+            graduationDate: 1,
+            courses: 1
+        }
+    }], (err, studentInfo) => {
+        if (err) {
+            handleError('Bad request!', res, 400, next);
+        } else {
+            try {
+                const newStudentInfo = [];
+
+                for (let i = 0; i < studentInfo.length; i++) {
+                    const student = studentInfo[i];
+                    const term = student.term[0].termKey;
+                    const termInfo = getTermsStudentInfoTerm(student.term);
+                    const courses = getCoursesStudentInfo(student.courses, term);
+                    const info = createStudentInfo(student, termInfo, courses);
+                    newStudentInfo.push(info);
+                }
+
+                res.status(200);
+                res.json(newStudentInfo);
+            } catch (error) {
+                handleError('Could not find student information', res, 404, next);
+            }
+        }
+    });
+};
+
+function createStudentInfo(data, term, courses) {
+    return {
+        term: term,
+        username: data.username,
+        name: data.name,
+        graduationDate: data.graduationDate,
+        courses: courses
+    };
+}
+
 function createStudentInfoTerm(data, advisor, terms, groups, courses, majorStr, minorStr) {
     return {
         _id: data._id,
@@ -201,7 +265,6 @@ function getAdvisorStudentInfoTerm(advisor) {
 
 function getTermsStudentInfoTerm(terms) {
     const termsArr = [];
-
     for (let i = 0; i < terms.length; i++) {
         const term = terms[i];
         const termName = getTermName(term.termKey);
@@ -249,6 +312,26 @@ function getGroupsStudentInfoTerm(groups, term) {
     }
 
     return groupsArr;
+}
+
+function getCoursesStudentInfo(courses, term) {
+    const coursesArr = [];
+
+    for (let i = 0; i < courses.length; i++) {
+        const course = courses[i];
+        if (course.term === term) {
+            coursesArr.push({
+                _id: course._id,
+                name: course.name,
+                description: course.description,
+                creditHours: course.creditHours,
+                meetTimes: course.meetTimes,
+                instructor: course.instructor
+            });
+        }
+    }
+
+    return coursesArr;
 }
 
 function getCoursesStudentInfoTerm(courses) {
