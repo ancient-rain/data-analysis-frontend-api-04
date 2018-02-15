@@ -31,6 +31,7 @@ require('./models/student');
 require('./models/faculty');
 require('./models/term');
 require('./models/course');
+require('./models/group');
 
 const index = require('./routes/index');
 const users = require('./routes/users');
@@ -62,10 +63,7 @@ app.use(bodyParser.urlencoded({
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// app.use('/', index);
-// app.use('/users', users);
 app.use('/', schedules);
-
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.get('/swagger.json', function (req, res) {

@@ -41,6 +41,13 @@ exports.getFacultyInfoByTerm = function (req, res, next) {
             foreignField: 'username',
             as: 'students'
         }
+    },  {
+        $lookup: {
+            from: "lookup",
+            localField: "username",
+            foreignField: "faculty",
+            as: "groups"
+        }
     }, {
         $project: {
             term: 1,
@@ -48,6 +55,7 @@ exports.getFacultyInfoByTerm = function (req, res, next) {
             name: 1,
             dept: 1,
             terms: 1,
+            groups: 1,
             courses: {
                 $filter: {
                     input: '$courses',
@@ -78,9 +86,10 @@ exports.getFacultyInfoByTerm = function (req, res, next) {
             try {
                 const data = faculty[0];
                 const terms = getTermsFacultyInfoTerm(data.terms);
+                const groups = getGroupsFacultyInfoTerm(data.groups, data.term);
                 const courses = getCoursesFacultyInfoTerm(data.courses);
                 const advisees = getAdvisessFacultyInfoTerm(data.advisees);
-                const newFaculty = createFacultyInfoTerm(data, terms, courses, advisees);
+                const newFaculty = createFacultyInfoTerm(data, terms, courses, groups, advisees);
 
                 res.status(200);
                 res.json([newFaculty]);
@@ -91,7 +100,7 @@ exports.getFacultyInfoByTerm = function (req, res, next) {
     });
 };
 
-function createFacultyInfoTerm(data, terms, courses, advisees) {
+function createFacultyInfoTerm(data, terms, courses, groups, advisees) {
     return {
         _id: data._id,
         term: data.term,
@@ -99,6 +108,7 @@ function createFacultyInfoTerm(data, terms, courses, advisees) {
         username: data.username,
         dept: data.dept,
         terms: terms,
+        groups: groups,
         courses: courses,
         advisees: advisees
     };
@@ -135,6 +145,25 @@ function getTermName(key) {
         default:
             return `Summer ${year}`;
     }
+}
+
+function getGroupsFacultyInfoTerm(groups, term) {
+    const groupsArr = [];
+    
+    for (let i = 0; i < groups.length; i++) {
+        const group = groups[i];
+        if (group.term === term) {
+            groupsArr.push({
+                _id: group._id,
+                groupName: group.groupName,
+                className: group.className,
+                faculty: group.faculty,
+                students: group.students
+            });
+        }
+    }
+
+    return groupsArr;
 }
 
 function getCoursesFacultyInfoTerm(courses) {
