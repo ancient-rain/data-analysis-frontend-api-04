@@ -102,73 +102,9 @@ router.get('/student/:username/:term/advisor', function (req, res) {
     }
 });
 
-router.route('/courses/:name/students')
-    .get((req, res) => {
-        const name = req.params.name.toUpperCase();
-        const regex = new RegExp('.*' + name + '.*');
+router.get('/courses/:name/students/taken/:term', studentController.getStudentsTaken);
 
-        STUDENT.find({
-            courses: {
-                $in: [regex]
-            }
-        }, (err, students) => {
-            if (err) {
-                console.log(err);
-            } else {
-                res.status(200);
-                res.json(students);
-            }
-        });
-    });
-
-router.route('/courses/:name/students/not-taken')
-    .get((req, res) => {
-        const name = req.params.name.toUpperCase();
-        const regex = new RegExp('.*' + name + '.*');
-
-        let returnStudents = null;
-        let takenStudents = null;
-
-        STUDENT.db.db.command({
-            distinct: 'lookup',
-            key: 'username',
-            query: {
-                type: 'Student'
-            }
-        }, (err, usernames) => {
-            if (err) {
-                console.log(err);
-            } else {
-                returnStudents = usernames.values;
-            }
-        });
-
-        STUDENT.db.db.command({
-            distinct: 'lookup',
-            key: 'username',
-            query: {
-                courses: {
-                    $in: [regex]
-                }
-            }
-        }, (err, usernames) => {
-            if (err) {
-                console.log(err);
-            } else {
-                takenStudents = usernames.values;
-                if (returnStudents == null || takenStudents == null) {
-                    console.log('Error: Unable to find list of students who haven\'t taken course');
-                } else {
-                    returnStudents = returnStudents.filter(function (el) {
-                        return takenStudents.indexOf(el) < 0;
-                    });
-                    res.status(200);
-                    res.json(returnStudents);
-                }
-            }
-
-        });
-    });
+router.get('/courses/:name/students/not-taken/:term', studentController.getStudentsNotTaken);
 
 router.route('/groups/')
     .post((req, res) => {
@@ -286,11 +222,11 @@ router.route('/term/:term').get((req, res) => {
 
     TERM.find({
         $and: [{
-                term: req.params.term
-            },
-            {
-                type: 'Term Info'
-            }
+            term: req.params.term
+        },
+        {
+            type: 'Term Info'
+        }
         ]
     }, (err, term) => {
         if (err) {
