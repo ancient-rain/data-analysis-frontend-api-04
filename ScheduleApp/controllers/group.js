@@ -60,7 +60,7 @@ exports.getGroupById = function (req, res, next) {
                 const term = data.termInfo[0].termKey;
                 const students = getMembersGroupInfoTerm(data.members, term);
                 const faculty = getFacultyGroupInfoTerm(data.facultyMembers, term);
-                const courses = getCoursesGroupInfoTerm(data.courseData, term);
+                const courses = getCoursesGroupInfoTerm(data.courseData, students, term);
                 const newGroup = createGroupInfoTerm(data, term, students, faculty, courses);
 
                 res.status(200);
@@ -160,12 +160,21 @@ function getFacultyGroupInfoTerm(faculty, term) {
     return facultyArr;
 }
 
-function getCoursesGroupInfoTerm(courses, term) {
+function getCoursesGroupInfoTerm(courses, students, term) {
     const coursesArr = [];
+    const availableCourses = {};
+
+    for (let i = 0; i < students.length; i++) {
+        const student = students[i];
+        for (let j = 0; j < student.courses.length; j++) {
+            const course = student.courses[j];
+            availableCourses[course] = course;
+        }
+    }
 
     for (let i = 0; i < courses.length; i++) {
         const course = courses[i];
-        if (course.term === term) {
+        if (availableCourses[course.name] && course.term === term) {
             coursesArr.push({
                 name: course.name,
                 description: course.description,
