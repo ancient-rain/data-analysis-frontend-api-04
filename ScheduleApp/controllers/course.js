@@ -32,6 +32,13 @@ exports.getCourseInfo = function (req, res, next) {
     }, {
         $lookup: {
             from: 'lookup',
+            localField: 'name',
+            foreignField: 'name',
+            as: 'terms'
+        }
+    }, {
+        $lookup: {
+            from: 'lookup',
             localField: 'instructor',
             foreignField: 'username',
             as: 'prof'
@@ -52,6 +59,12 @@ exports.getCourseInfo = function (req, res, next) {
         }
     }, {
         $project: {
+            term: 1,
+            name: 1,
+            description: 1,
+            creditHours: 1,
+            meetTimes: 1,
+            terms: 1,
             advisors: {
                 $filter: {
                     input: '$advisors',
@@ -70,9 +83,6 @@ exports.getCourseInfo = function (req, res, next) {
                     }
                 }
             },
-            term: 1,
-            name: 1,
-            description: 1,
             instructor: {
                 $filter: {
                     input: '$prof',
@@ -81,9 +91,7 @@ exports.getCourseInfo = function (req, res, next) {
                         $eq: ['$$instructor.term', term]
                     }
                 }
-            },
-            creditHours: 1,
-            meetTimes: 1
+            }
         }
     }], (err, course) => {
         if (err) {
@@ -96,12 +104,13 @@ exports.getCourseInfo = function (req, res, next) {
                     const data = course[i];
                     const studentMap = createStudentMap(data.students);
                     const term = getCourseTerms(data.term);
+                    const terms = createTermsArray(data.terms);
                     const instructor = getCourseInstructor(data.instructor[0]);
                     const filteredTime = getClassTime(data.meetTimes);
 
                     updateMap(studentMap, data.advisors);
                     const students = getStudentsCourseInfo(data.students, studentMap);
-                    const courseInfo = createCourseInfo(data, students, term, instructor, filteredTime);
+                    const courseInfo = createCourseInfo(data, students, term, terms, instructor, filteredTime);
                     
                     newCourse.push(courseInfo);
                 }
@@ -515,7 +524,7 @@ exports.getYearStudentsNotTaken = function (req, res, next) {
     });
 };
 
-function createCourseInfo(data, students, term, instructor, filteredTime) {
+function createCourseInfo(data, students, term, terms, instructor, filteredTime) {
     return {
         name: data.name,
         description: data.description,
@@ -524,7 +533,9 @@ function createCourseInfo(data, students, term, instructor, filteredTime) {
         meetTimes: data.meetTimes,
         filteredTime: filteredTime,
         term: term,
-        students: students
+        terms: terms,
+        students: students,
+        numStudents: students.length
     };
 }
 
@@ -615,6 +626,16 @@ function getTermName(key) {
         default:
             return `Summer ${year}`;
     }
+}
+
+function createTermsArray(terms) {
+    const array = [];
+
+    for (let i = 0; i < terms.length; i++) {
+        array.push(terms[i].term);
+    }
+
+    return array;
 }
 
 function getStudentsCourseInfo(students, map) {
