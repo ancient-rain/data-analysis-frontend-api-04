@@ -235,13 +235,11 @@ exports.getAllStudentsTaken = function (req, res, next) {
                             try {
                                 const studentArray = [];
                                 const studentMap = {};
-                                let j = 0;
 
                                 for (let i = 0; i < students.length; i++) {
                                     const data = students[i];
 
                                     if (!studentMap[data.username]) {
-                                        j++;
                                         const advisor = getAdvisor(data.advisor[0]);
                                         const majorStr = createMajorsString(data.majors);
                                         const minorStr = createMinorsString(data.minors);
@@ -250,7 +248,7 @@ exports.getAllStudentsTaken = function (req, res, next) {
                                         studentMap[data.username] = true;
                                     }
                                 }
-                                console.log(j);
+
                                 res.status(200);
                                 res.json(studentArray);
                             } catch (error) {
@@ -267,7 +265,118 @@ exports.getAllStudentsTaken = function (req, res, next) {
 };
 
 exports.getAllStudentsNotTaken = function (req, res, next) {
+    const name = req.params.name.toUpperCase();
+    const regex = new RegExp('.*' + name + '.*');
+    let major = name.substring(0, 2);
+    if (major === 'CS') {
+        major = ['CS', 'SE'];
+    } else {
+        major = [major];
+    }
 
+    let returnStudents = null;
+    let takenStudents = null;
+
+    STUDENT.db.db.command({
+        distinct: 'lookup',
+        key: 'username',
+        query: {
+            $and: [{
+                    type: 'Student'
+                },
+                {
+                    majors: {
+                        $in: major
+                    }
+                }
+            ]
+        }
+    }, (err, usernames) => {
+        if (err) {
+            console.log(err);
+        } else {
+            returnStudents = usernames.values;
+        }
+    });
+
+    STUDENT.db.db.command({
+        distinct: 'lookup',
+        key: 'username',
+        query: {
+            courses: {
+                $in: [regex]
+            }
+        }
+    }, (err, usernames) => {
+        if (err) {
+            console.log(err);
+        } else {
+            try {
+                takenStudents = usernames.values;
+                if (returnStudents == null || takenStudents == null) {
+                    console.log('Error: Unable to find list of students who haven\'t taken course');
+                } else {
+                    returnStudents = returnStudents.filter(function (el) {
+                        return takenStudents.indexOf(el) < 0;
+                    });
+                    STUDENT.aggregate([{
+                        $match: {
+                            username: {
+                                $in: returnStudents
+                            }
+                        }
+                    }, {
+                        $lookup: {
+                            from: "lookup",
+                            localField: "username",
+                            foreignField: "advisees",
+                            as: "advisor"
+                        }
+                    }, {
+                        $project: {
+                            term: 1,
+                            username: 1,
+                            name: 1,
+                            year: 1,
+                            graduationDate: 1,
+                            minors: 1,
+                            majors: 1,
+                            advisor: 1
+                        }
+                    }], (err, students) => {
+                        if (err) {
+                            handleError('Bad request!', res, 400, next);
+                        } else {
+                            try {
+                                const studentArray = [];
+                                const studentMap = {};
+
+                                for (let i = 0; i < students.length; i++) {
+                                    const data = students[i];
+
+                                    if (!studentMap[data.username]) {
+                                        const advisor = getAdvisor(data.advisor[0]);
+                                        const majorStr = createMajorsString(data.majors);
+                                        const minorStr = createMinorsString(data.minors);
+                                        const newStudent = createStudentsList(data, advisor, majorStr, minorStr);
+                                        studentArray.push(newStudent);
+                                        studentMap[data.username] = true;
+                                    }
+                                }
+
+                                res.status(200);
+                                res.json(studentArray);
+                            } catch (error) {
+                                handleError('Could not find students who have not taken given course', res, 404, next);
+                            }
+                        }
+                    });
+                }
+            } catch (error) {
+                handleError('Bad request!', res, 400, next);
+            }
+        }
+    });
 };
 
 exports.getYearStudentsTaken = function (req, res, next) {
@@ -355,7 +464,122 @@ exports.getYearStudentsTaken = function (req, res, next) {
 };
 
 exports.getYearStudentsNotTaken = function (req, res, next) {
+    const name = req.params.name.toUpperCase();
+    const regex = new RegExp('.*' + name + '.*');
+    let major = name.substring(0, 2);
+    if (major === 'CS') {
+        major = ['CS', 'SE'];
+    } else {
+        major = [major];
+    }
 
+    let returnStudents = null;
+    let takenStudents = null;
+
+    STUDENT.db.db.command({
+        distinct: 'lookup',
+        key: 'username',
+        query: {
+            $and: [{
+                    year: req.params.year
+                }, {
+                    type: 'Student'
+                },
+                {
+                    majors: {
+                        $in: major
+                    }
+                }
+            ]
+        }
+    }, (err, usernames) => {
+        if (err) {
+            console.log(err);
+        } else {
+            returnStudents = usernames.values;
+        }
+    });
+
+    STUDENT.db.db.command({
+        distinct: 'lookup',
+        key: 'username',
+        query: {
+            courses: {
+                $in: [regex]
+            }
+        }
+    }, (err, usernames) => {
+        if (err) {
+            console.log(err);
+        } else {
+            try {
+                takenStudents = usernames.values;
+                if (returnStudents == null || takenStudents == null) {
+                    console.log('Error: Unable to find list of students who haven\'t taken course');
+                } else {
+                    returnStudents = returnStudents.filter(function (el) {
+                        return takenStudents.indexOf(el) < 0;
+                    });
+                    STUDENT.aggregate([{
+                        $match: {
+                            $and: [{
+                                year: req.params.year
+                            }, {
+                                username: { $in: returnStudents }
+                            }]
+                        }
+                    }, {
+                        $lookup: {
+                            from: "lookup",
+                            localField: "username",
+                            foreignField: "advisees",
+                            as: "advisor"
+                        }
+                    }, {
+                        $project: {
+                            term: 1,
+                            username: 1,
+                            name: 1,
+                            year: 1,
+                            graduationDate: 1,
+                            minors: 1,
+                            majors: 1,
+                            advisor: 1
+                        }
+                    }], (err, students) => {
+                        if (err) {
+                            handleError('Bad request!', res, 400, next);
+                        } else {
+                            try {
+                                const studentArray = [];
+                                const studentMap = {};
+
+                                for (let i = 0; i < students.length; i++) {
+                                    const data = students[i];
+
+                                    if (!studentMap[data.username]) {
+                                        const advisor = getAdvisor(data.advisor[0]);
+                                        const majorStr = createMajorsString(data.majors);
+                                        const minorStr = createMinorsString(data.minors);
+                                        const newStudent = createStudentsList(data, advisor, majorStr, minorStr);
+                                        studentArray.push(newStudent);
+                                        studentMap[data.username] = true;
+                                    }
+                                }
+
+                                res.status(200);
+                                res.json(studentArray);
+                            } catch (error) {
+                                handleError('Could not find students who have not taken given course', res, 404, next);
+                            }
+                        }
+                    });
+                }
+            } catch (error) {
+                handleError('Bad request!', res, 400, next);
+            }
+        }
+    });
 };
 
 function createCourseInfo(data, students, terms, instructor) {
