@@ -60,8 +60,6 @@ router.get('/course/:name/students-not-taken/all', courseController.getAllStuden
 
 router.get('/course/:name/students-not-taken/:year', courseController.getYearStudentsNotTaken);
 
-router.get('/courses/:name/:term', courseController.getCoursesInfo);
-
 router.route('/groups/:id').get(groupController.getGroupById);
 
 

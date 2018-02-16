@@ -16,23 +16,18 @@ exports.getCourseInfo = function (req, res, next) {
                     term: term
                 },
                 {
-                    name: course
+                    name: {
+                        $regex: course
+                    }
                 }
             ]
         }
     }, {
         $lookup: {
             from: 'lookup',
-            localField: 'name',
-            foreignField: 'name',
-            as: 'courseTerms'
-        }
-    }, {
-        $lookup: {
-            from: 'lookup',
-            localField: 'courseTerms.term',
+            localField: 'term',
             foreignField: 'termKey',
-            as: 'terms'
+            as: 'term'
         }
     }, {
         $lookup: {
@@ -75,7 +70,6 @@ exports.getCourseInfo = function (req, res, next) {
                     }
                 }
             },
-            terms: 1,
             term: 1,
             name: 1,
             description: 1,
@@ -96,89 +90,26 @@ exports.getCourseInfo = function (req, res, next) {
             handleError('Bad request!', res, 400, next);
         } else {
             try {
-                const data = course[0];
-                const studentMap = createStudentMap(data.students);
-                const terms = getCourseTerms(data.terms);
-                const instructor = getCourseInstructor(data.instructor[0]);
+                const newCourse = [];
 
-                updateMap(studentMap, data.advisors);
-                const students = getStudentsCourseInfo(data.students, studentMap);
-                const newCourse = createCourseInfo(data, students, terms, instructor);
+                for (let i = 0; i < course.length; i++) {
+                    const data = course[i];
+                    const studentMap = createStudentMap(data.students);
+                    const term = getCourseTerms(data.term);
+                    const instructor = getCourseInstructor(data.instructor[0]);
+                    const filteredTime = getClassTime(data.meetTimes);
+
+                    updateMap(studentMap, data.advisors);
+                    const students = getStudentsCourseInfo(data.students, studentMap);
+                    const courseInfo = createCourseInfo(data, students, term, instructor, filteredTime);
+                    
+                    newCourse.push(courseInfo);
+                }
 
                 res.status(200);
-                res.json([newCourse]);
+                res.json(newCourse);
             } catch (error) {
                 handleError('Could not find course information for given term', res, 404, next);
-            }
-        }
-    });
-};
-
-exports.getCoursesInfo = function (req, res, next) {
-    const term = req.params.term;
-    const name = req.params.name.toUpperCase();
-    const course = new RegExp('.*' + name + '.*');
-
-    COURSE.aggregate([{
-        $match: {
-            $and: [{
-                    term: term
-                },
-                {
-                    name: course
-                }
-            ]
-        }
-    }, {
-        $lookup: {
-            from: 'lookup',
-            localField: 'name',
-            foreignField: 'courses',
-            as: 'students'
-        }
-    }, {
-        $lookup: {
-            from: 'lookup',
-            localField: 'name',
-            foreignField: 'name',
-            as: 'coursesTerms'
-        }
-    }, {
-        $lookup: {
-            from: 'lookup',
-            localField: 'coursesTerms.term',
-            foreignField: 'termKey',
-            as: 'terms'
-        }
-    }, {
-        $project: {
-            students: {
-                $filter: {
-                    input: '$students',
-                    as: 'students',
-                    cond: {
-                        $eq: ['$$students.term', term]
-                    }
-                }
-            },
-            terms: 1,
-            term: 1,
-            name: 1,
-            description: 1,
-            instructor: 1,
-            creditHours: 1,
-            meetTimes: 1
-        }
-    }], (err, courses) => {
-        if (err) {
-            handleError('Bad request!', res, 400, next);
-        } else {
-            try {
-                const newCourses = getCourseData(courses);
-                res.status(200);
-                res.json(newCourses);
-            } catch (error) {
-                handleError('Could not find courses infromation for given term', res, 404, next);
             }
         }
     });
@@ -525,7 +456,9 @@ exports.getYearStudentsNotTaken = function (req, res, next) {
                             $and: [{
                                 year: req.params.year
                             }, {
-                                username: { $in: returnStudents }
+                                username: {
+                                    $in: returnStudents
+                                }
                             }]
                         }
                     }, {
@@ -582,16 +515,15 @@ exports.getYearStudentsNotTaken = function (req, res, next) {
     });
 };
 
-function createCourseInfo(data, students, terms, instructor) {
+function createCourseInfo(data, students, term, instructor, filteredTime) {
     return {
-        _id: data._id,
-        term: data.term,
         name: data.name,
         description: data.description,
         instructor: instructor,
         creditHours: data.creditHours,
         meetTimes: data.meetTimes,
-        terms: terms,
+        filteredTime: filteredTime,
+        term: term,
         students: students
     };
 }
