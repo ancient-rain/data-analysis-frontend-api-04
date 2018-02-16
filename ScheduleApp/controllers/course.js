@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const COURSE = mongoose.model('Course');
+const STUDENT = mongoose.model('Student');
 const FINAL_LENGTH = 400;
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const HOURS = [805, 900, 955, 1050, 1145, 1240, 1335, 1430, 1525, 1620];
@@ -184,6 +185,102 @@ exports.getCoursesInfo = function (req, res, next) {
     });
 };
 
+exports.getAllStudentsTaken = function (req, res, next) {
+
+};
+
+exports.getAllStudentsNotTaken = function (req, res, next) {
+
+};
+
+exports.getYearStudentsTaken = function (req, res, next) {
+    const name = req.params.name.toUpperCase();
+    const regex = new RegExp('.*' + name + '.*');
+    let takenStudents;
+
+    STUDENT.db.db.command({
+        distinct: 'lookup',
+        key: 'username',
+        query: {
+            courses: regex
+        }
+    }, (err, usernames) => {
+        if (err) {
+            handleError('Bad request!', res, 400, next);
+        } else {
+            try {
+                takenStudents = usernames.values;
+                if (takenStudents == null) {
+                    handleError('Bad request!', res, 400, next);
+                } else {
+                    STUDENT.aggregate([{
+                        $match: {
+                            $and: [{
+                                year: req.params.year
+                            }, {
+                                username: {
+                                    $in: takenStudents
+                                }
+                            }]
+                        }
+                    }, {
+                        $lookup: {
+                            from: "lookup",
+                            localField: "username",
+                            foreignField: "advisees",
+                            as: "advisor"
+                        }
+                    }, {
+                        $project: {
+                            term: 1,
+                            username: 1,
+                            name: 1,
+                            year: 1,
+                            graduationDate: 1,
+                            minors: 1,
+                            majors: 1,
+                            advisor: 1,
+                        }
+                    }], (err, students) => {
+                        if (err) {
+                            handleError('Bad request!', res, 400, next);
+                        } else {
+                            try {
+                                const studentArray = [];
+                                const studentMap = {};
+
+                                for (let i = 0; i < students.length; i++) {
+                                    const data = students[i];
+
+                                    if (!studentMap[data.username]) {
+                                        const advisor = getAdvisor(data.advisor[0]);
+                                        const majorStr = createMajorsString(data.majors);
+                                        const minorStr = createMinorsString(data.minors);
+                                        const newStudent = createStudentsList(data, advisor, majorStr, minorStr);
+                                        studentArray.push(newStudent);
+                                        studentMap[data.username] = true;
+                                    }
+                                }
+
+                                res.status(200);
+                                res.json(studentArray);
+                            } catch (error) {
+                                handleError('Could not students who have taken given course', res, 404, next);
+                            }
+                        }
+                    });
+                }
+            } catch (error) {
+                handleError('Could not students who have taken given course', res, 404, next);
+            }
+        }
+    });
+};
+
+exports.getYearStudentsNotTaken = function (req, res, next) {
+
+};
+
 function createCourseInfo(data, students, terms, instructor) {
     return {
         _id: data._id,
@@ -210,6 +307,18 @@ function createCoursesInfo(data, numStudents, terms, filteredTimes) {
         numStudents: numStudents,
         filteredTimes: filteredTimes.trim(),
         terms: terms
+    };
+}
+
+function createStudentsList(data, advisor, majorStr, minorStr) {
+    return {
+        term: data.term,
+        username: data.username,
+        year: data.year,
+        name: data.name,
+        major: majorStr,
+        minor: minorStr,
+        advisor: advisor
     };
 }
 
@@ -360,6 +469,10 @@ function getFilteredClass(days, start, end) {
     const classStr = `${days}/${hoursStr}`;
 
     return classStr === '/' ? 'TBA' : classStr;
+}
+
+function getAdvisor(advisor) {
+    return advisor ? advisor.username : '';
 }
 
 function createMajorsString(majors) {

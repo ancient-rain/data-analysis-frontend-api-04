@@ -22,7 +22,7 @@ exports.getStudentsTaken = function (req, res, next) {
                 STUDENT.aggregate([{
                     $match: {
                         $and: [{
-                            term: req.params.term
+                            year: req.params.year
                         }, {
                             username: { $in: takenStudents }
                         }]

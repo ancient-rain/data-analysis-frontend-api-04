@@ -52,6 +52,18 @@ router.get('/faculty/:username/:term', facultyController.getFacultyInfoByTerm);
 
 router.get('/course/:name/:term', courseController.getCourseInfo);
 
+router.get('/course/:name/students-taken/', courseController.getAllStudentsTaken);
+
+router.get('/course/:name/students-taken/:year', courseController.getYearStudentsTaken);
+
+router.get('/course/:name/students-not-taken/', courseController.getAllStudentsNotTaken);
+
+router.get('/course/:name/students-not-taken/:year', courseController.getYearStudentsNotTaken);
+
+// router.get('/courses/:name/students/taken/:year', studentController.getStudentsTaken);
+
+router.get('/courses/:name/students/not-taken/:term', studentController.getStudentsNotTaken);
+
 router.get('/courses/:name/:term', courseController.getCoursesInfo);
 
 router.route('/groups/:id').get(groupController.getGroupById);
@@ -101,10 +113,6 @@ router.get('/student/:username/:term/advisor', function (req, res) {
         }
     }
 });
-
-router.get('/courses/:name/students/taken/:term', studentController.getStudentsTaken);
-
-router.get('/courses/:name/students/not-taken/:term', studentController.getStudentsNotTaken);
 
 router.route('/groups/')
     .post((req, res) => {
@@ -222,11 +230,11 @@ router.route('/term/:term').get((req, res) => {
 
     TERM.find({
         $and: [{
-            term: req.params.term
-        },
-        {
-            type: 'Term Info'
-        }
+                term: req.params.term
+            },
+            {
+                type: 'Term Info'
+            }
         ]
     }, (err, term) => {
         if (err) {
