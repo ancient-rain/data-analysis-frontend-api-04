@@ -52,17 +52,15 @@ router.get('/faculty/:username/:term', facultyController.getFacultyInfoByTerm);
 
 router.get('/course/:name/:term', courseController.getCourseInfo);
 
-router.get('/course/:name/students-taken/', courseController.getAllStudentsTaken);
+router.get('/course/:name/students-taken/all', courseController.getAllStudentsTaken);
 
 router.get('/course/:name/students-taken/:year', courseController.getYearStudentsTaken);
 
 router.get('/course/:name/students-not-taken/', courseController.getAllStudentsNotTaken);
 
-router.get('/course/:name/students-not-taken/:year', courseController.getYearStudentsNotTaken);
+// router.get('/course/:name/students-not-taken/:year', courseController.getYearStudentsNotTaken);
 
-// router.get('/courses/:name/students/taken/:year', studentController.getStudentsTaken);
-
-router.get('/courses/:name/students/not-taken/:term', studentController.getStudentsNotTaken);
+// router.get('/courses/:name/students/not-taken/:term', studentController.getStudentsNotTaken);
 
 router.get('/courses/:name/:term', courseController.getCoursesInfo);
 
