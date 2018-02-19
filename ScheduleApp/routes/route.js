@@ -48,6 +48,7 @@ router.get('/student/:username/:term', studentController.getStudentInfoByTerm);
 
 router.get('/student/:username', studentController.getStudentInfo);
 
+/* TODO */
 router.get('/students/:term/*', studentController.getStudentsBySearch);
 
 router.get('/faculty/:username/:term', facultyController.getFacultyInfoByTerm);

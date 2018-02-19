@@ -21,15 +21,8 @@ exports.getStudentsBySearch = function (req, res, next) {
     }, {
         $lookup: {
             from: "lookup",
-            localField: "username",
-            foreignField: "advisees",
-            as: "advisor"
-        }
-    }, {
-        $lookup: {
-            from: "lookup",
-            localField: "username",
-            foreignField: "username",
+            localField: "term",
+            foreignField: "termKey",
             as: "terms"
         }
     }, {
@@ -41,16 +34,8 @@ exports.getStudentsBySearch = function (req, res, next) {
             graduationDate: 1,
             minors: 1,
             majors: 1,
-            advisor: {
-                $filter: {
-                    input: '$advisor',
-                    as: 'advisor',
-                    cond: {
-                        $eq: ['$$advisor.term', term],
-                    }
-                }
-            },
-            "terms.term": 1,
+            advisor: 1,
+            terms: 1,
         }
     }], (err, students) => {
         if (err) {
@@ -101,13 +86,6 @@ exports.getStudentInfoByTerm = function (req, res, next) {
         $lookup: {
             from: "lookup",
             localField: "username",
-            foreignField: "advisees",
-            as: "advisor"
-        }
-    }, {
-        $lookup: {
-            from: "lookup",
-            localField: "username",
             foreignField: "username",
             as: "userTerms"
         }
@@ -134,15 +112,7 @@ exports.getStudentInfoByTerm = function (req, res, next) {
             graduationDate: 1,
             minors: 1,
             majors: 1,
-            advisor: {
-                $filter: {
-                    input: '$advisor',
-                    as: 'advisor',
-                    cond: {
-                        $eq: ['$$advisor.term', term],
-                    }
-                }
-            },
+            advisor: 1,
             groups: 1,
             terms: 1,
             courses: {
@@ -161,13 +131,12 @@ exports.getStudentInfoByTerm = function (req, res, next) {
         } else {
             try {
                 const data = student[0];
-                const advisor = getAdvisorStudentInfoTerm(data.advisor[0]);
                 const terms = getTermsStudentInfoTerm(data.terms);
                 const courses = getCoursesStudentInfoTerm(data.courses);
                 const groups = getGroupsStudentInfoTerm(data.groups, data.term);
                 const majorStr = createMajorsString(data.majors);
                 const minorStr = createMinorsString(data.minors);
-                const newStudent = createStudentInfoTerm(data, advisor, terms, groups, courses, majorStr, minorStr);
+                const newStudent = createStudentInfoTerm(data, terms, groups, courses, majorStr, minorStr);
 
                 res.status(200);
                 res.json([newStudent]);
@@ -242,9 +211,8 @@ function createStudentInfo(data, term, courses) {
     };
 }
 
-function createStudentInfoTerm(data, advisor, terms, groups, courses, majorStr, minorStr) {
+function createStudentInfoTerm(data, terms, groups, courses, majorStr, minorStr) {
     return {
-        _id: data._id,
         term: data.term,
         username: data.username,
         name: data.name,
@@ -252,7 +220,7 @@ function createStudentInfoTerm(data, advisor, terms, groups, courses, majorStr, 
         majors: majorStr,
         minors: minorStr,
         graduationDate: data.graduationDate,
-        advisor: advisor,
+        advisor: data.advisor,
         terms: terms,
         groups: groups,
         courses: courses
@@ -269,7 +237,6 @@ function getTermsStudentInfoTerm(terms) {
         const term = terms[i];
         const termName = getTermName(term.termKey);
         termsArr.push({
-            _id: term._id,
             term: term.termKey,
             name: termName,
             startDate: term.startDate,
@@ -321,7 +288,6 @@ function getCoursesStudentInfo(courses, term) {
         const course = courses[i];
         if (course.term === term) {
             coursesArr.push({
-                _id: course._id,
                 name: course.name,
                 description: course.description,
                 creditHours: course.creditHours,
@@ -340,7 +306,6 @@ function getCoursesStudentInfoTerm(courses) {
     for (let i = 0; i < courses.length; i++) {
         const course = courses[i];
         coursesArr.push({
-            _id: course._id,
             name: course.name,
             term: course.term,
             description: course.description,

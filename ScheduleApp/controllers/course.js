@@ -51,13 +51,6 @@ exports.getCourseInfo = function (req, res, next) {
             as: 'students'
         }
     }, {
-        $lookup: {
-            from: 'lookup',
-            localField: 'students.username',
-            foreignField: 'advisees',
-            as: 'advisors'
-        }
-    }, {
         $project: {
             term: 1,
             name: 1,
@@ -65,15 +58,6 @@ exports.getCourseInfo = function (req, res, next) {
             creditHours: 1,
             meetTimes: 1,
             terms: 1,
-            advisors: {
-                $filter: {
-                    input: '$advisors',
-                    as: 'advisor',
-                    cond: {
-                        $eq: ['$$advisor.term', term]
-                    }
-                }
-            },
             students: {
                 $filter: {
                     input: '$students',
@@ -102,14 +86,11 @@ exports.getCourseInfo = function (req, res, next) {
 
                 for (let i = 0; i < course.length; i++) {
                     const data = course[i];
-                    const studentMap = createStudentMap(data.students);
                     const term = getCourseTerms(data.term);
                     const terms = createTermsArray(data.terms);
                     const instructor = getCourseInstructor(data.instructor[0]);
                     const filteredTime = getClassTime(data.meetTimes);
-
-                    updateMap(studentMap, data.advisors);
-                    const students = getStudentsCourseInfo(data.students, studentMap);
+                    const students = getStudentsCourseInfo(data.students);
                     const courseInfo = createCourseInfo(data, students, term, terms, instructor, filteredTime);
                     
                     newCourse.push(courseInfo);
@@ -152,13 +133,6 @@ exports.getAllStudentsTaken = function (req, res, next) {
                             }
                         }
                     }, {
-                        $lookup: {
-                            from: "lookup",
-                            localField: "username",
-                            foreignField: "advisees",
-                            as: "advisor"
-                        }
-                    }, {
                         $project: {
                             term: 1,
                             username: 1,
@@ -167,7 +141,7 @@ exports.getAllStudentsTaken = function (req, res, next) {
                             graduationDate: 1,
                             minors: 1,
                             majors: 1,
-                            advisor: 1,
+                            advisor: 1
                         }
                     }], (err, students) => {
                         if (err) {
@@ -181,10 +155,9 @@ exports.getAllStudentsTaken = function (req, res, next) {
                                     const data = students[i];
 
                                     if (!studentMap[data.username]) {
-                                        const advisor = getAdvisor(data.advisor[0]);
                                         const majorStr = createMajorsString(data.majors);
                                         const minorStr = createMinorsString(data.minors);
-                                        const newStudent = createStudentsList(data, advisor, majorStr, minorStr);
+                                        const newStudent = createStudentsList(data, majorStr, minorStr);
                                         studentArray.push(newStudent);
                                         studentMap[data.username] = true;
                                     }
@@ -268,13 +241,6 @@ exports.getAllStudentsNotTaken = function (req, res, next) {
                             }
                         }
                     }, {
-                        $lookup: {
-                            from: "lookup",
-                            localField: "username",
-                            foreignField: "advisees",
-                            as: "advisor"
-                        }
-                    }, {
                         $project: {
                             term: 1,
                             username: 1,
@@ -297,10 +263,9 @@ exports.getAllStudentsNotTaken = function (req, res, next) {
                                     const data = students[i];
 
                                     if (!studentMap[data.username]) {
-                                        const advisor = getAdvisor(data.advisor[0]);
                                         const majorStr = createMajorsString(data.majors);
                                         const minorStr = createMinorsString(data.minors);
-                                        const newStudent = createStudentsList(data, advisor, majorStr, minorStr);
+                                        const newStudent = createStudentsList(data, majorStr, minorStr);
                                         studentArray.push(newStudent);
                                         studentMap[data.username] = true;
                                     }
@@ -352,13 +317,6 @@ exports.getYearStudentsTaken = function (req, res, next) {
                             }]
                         }
                     }, {
-                        $lookup: {
-                            from: "lookup",
-                            localField: "username",
-                            foreignField: "advisees",
-                            as: "advisor"
-                        }
-                    }, {
                         $project: {
                             term: 1,
                             username: 1,
@@ -367,7 +325,7 @@ exports.getYearStudentsTaken = function (req, res, next) {
                             graduationDate: 1,
                             minors: 1,
                             majors: 1,
-                            advisor: 1,
+                            advisor: 1
                         }
                     }], (err, students) => {
                         if (err) {
@@ -376,15 +334,14 @@ exports.getYearStudentsTaken = function (req, res, next) {
                             try {
                                 const studentArray = [];
                                 const studentMap = {};
-
+                                console.log(students);
                                 for (let i = 0; i < students.length; i++) {
                                     const data = students[i];
 
                                     if (!studentMap[data.username]) {
-                                        const advisor = getAdvisor(data.advisor[0]);
                                         const majorStr = createMajorsString(data.majors);
                                         const minorStr = createMinorsString(data.minors);
-                                        const newStudent = createStudentsList(data, advisor, majorStr, minorStr);
+                                        const newStudent = createStudentsList(data, majorStr, minorStr);
                                         studentArray.push(newStudent);
                                         studentMap[data.username] = true;
                                     }
@@ -473,13 +430,6 @@ exports.getYearStudentsNotTaken = function (req, res, next) {
                             }]
                         }
                     }, {
-                        $lookup: {
-                            from: "lookup",
-                            localField: "username",
-                            foreignField: "advisees",
-                            as: "advisor"
-                        }
-                    }, {
                         $project: {
                             term: 1,
                             username: 1,
@@ -502,10 +452,9 @@ exports.getYearStudentsNotTaken = function (req, res, next) {
                                     const data = students[i];
 
                                     if (!studentMap[data.username]) {
-                                        const advisor = getAdvisor(data.advisor[0]);
                                         const majorStr = createMajorsString(data.majors);
                                         const minorStr = createMinorsString(data.minors);
-                                        const newStudent = createStudentsList(data, advisor, majorStr, minorStr);
+                                        const newStudent = createStudentsList(data, majorStr, minorStr);
                                         studentArray.push(newStudent);
                                         studentMap[data.username] = true;
                                     }
@@ -543,7 +492,6 @@ function createCourseInfo(data, students, term, terms, instructor, filteredTime)
 
 function createCoursesInfo(data, numStudents, terms, filteredTimes) {
     return {
-        _id: data._id,
         term: data.term,
         name: data.name,
         description: data.description,
@@ -556,7 +504,7 @@ function createCoursesInfo(data, numStudents, terms, filteredTimes) {
     };
 }
 
-function createStudentsList(data, advisor, majorStr, minorStr) {
+function createStudentsList(data, majorStr, minorStr) {
     return {
         term: data.term,
         username: data.username,
@@ -564,30 +512,8 @@ function createStudentsList(data, advisor, majorStr, minorStr) {
         name: data.name,
         major: majorStr,
         minor: minorStr,
-        advisor: advisor
+        advisor: data.advisor
     };
-}
-
-function createStudentMap(students) {
-    const map = {};
-    for (let i = 0; i < students.length; i++) {
-        const student = students[i];
-        map[student.username] = '';
-    }
-    return map;
-}
-
-function updateMap(map, advisors) {
-    for (let i = 0; i < advisors.length; i++) {
-        const advisor = advisors[i];
-        const username = advisor.username;
-        for (let j = 0; j < advisor.advisees.length; j++) {
-            const advisee = advisor.advisees[j];
-            if (map.hasOwnProperty(advisee)) {
-                map[advisee] = username;
-            }
-        }
-    }
 }
 
 function getCourseInstructor(instructor) {
@@ -604,7 +530,6 @@ function getCourseTerms(terms) {
         const term = terms[i];
         const termName = getTermName(term.termKey);
         termsArr.push({
-            _id: term._id,
             term: term.termKey,
             name: termName,
             startDate: term.startDate,
@@ -640,14 +565,14 @@ function createTermsArray(terms) {
     return array;
 }
 
-function getStudentsCourseInfo(students, map) {
+function getStudentsCourseInfo(students) {
     const studentsArr = [];
+
     for (let i = 0; i < students.length; i++) {
         const student = students[i];
         const majorStr = createMajorsString(student.majors);
         const minorStr = createMinorsString(student.minors);
         studentsArr.push({
-            _id: student._id,
             term: student.term,
             username: student.username,
             name: student.name,
@@ -655,9 +580,10 @@ function getStudentsCourseInfo(students, map) {
             majors: majorStr,
             minors: minorStr,
             graduationDate: student.graduationDate,
-            advisor: map[student.username]
+            advisor: student.advisor
         });
     }
+
     return studentsArr;
 }
 
@@ -725,10 +651,6 @@ function getFilteredClass(days, start, end) {
     const classStr = `${days}/${hoursStr}`;
 
     return classStr === '/' ? 'TBA' : classStr;
-}
-
-function getAdvisor(advisor) {
-    return advisor ? advisor.username : '';
 }
 
 function createMajorsString(majors) {
