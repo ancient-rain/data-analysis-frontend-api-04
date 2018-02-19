@@ -90,7 +90,7 @@ exports.createGroup = function (req, res, next) {
         members: req.body.members
     }, (err, group) => {
         if (err) {
-            handleError(err, 'Bad request!', 400, next);
+            handleError(err, 'Bad request! Make sure you include all parameters.', 400, next);
         } else {
             res.json(group);
         }
