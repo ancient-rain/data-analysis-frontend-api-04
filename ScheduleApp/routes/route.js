@@ -10,8 +10,6 @@ const studentController = require('../controllers/student');
 const facultyController = require('../controllers/faculty');
 const courseController = require('../controllers/course');
 const groupController = require('../controllers/group');
-const f = [];
-let s = [];
 
 router.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -48,9 +46,6 @@ router.get('/student/:username/:term', studentController.getStudentInfoByTerm);
 
 router.get('/student/:username', studentController.getStudentInfo);
 
-/* TODO */
-router.get('/students/:term/*', studentController.getStudentsBySearch);
-
 router.get('/faculty/:username/:term', facultyController.getFacultyInfoByTerm);
 
 router.get('/course/:name/:term', courseController.getCourseInfo);
@@ -63,186 +58,19 @@ router.get('/course/:name/students-not-taken/all', courseController.getAllStuden
 
 router.get('/course/:name/students-not-taken/:year', courseController.getYearStudentsNotTaken);
 
-router.route('/groups/:id').get(groupController.getGroupById);
+router.route('/group/:id').get(groupController.getGroupById);
+
+router.route('/group/:id').delete(groupController.deleteGroup);
+
+router.route('/group').post(groupController.createGroup);
 
 
 
 
-router.get('/course/:name/:term/students', function (req, res) {
-    const term = req.params.term;
-    const course = req.params.name;
-    const regex = new RegExp('.*' + course + '.*');
+/* TODO */
+router.get('/students/:term/*', studentController.getStudentsBySearch);
 
-    STUDENT.find({
-        $and: [{
-            term: term
-        }, {
-            type: 'Student'
-        }, {
-            courses: {
-                $in: [regex]
-            }
-        }]
-    }, (err, students) => {
-        if (err) {
-            console.log(err);
-        } else {
-            res.status(200);
-            res.json(students);
-        }
-    });
-});
-
-router.get('/student/:username/:term/advisor', function (req, res) {
-    const term = req.params.term;
-    const username = req.params.username.toUpperCase();
-
-    FACULTY.find({
-        advisees: {
-            $contains: username
-        }
-    }), (err, advisor) => {
-        if (err) {
-            console.log(err);
-        } else {
-            res.status(200);
-            res.json(advisor);
-        }
-    }
-});
-
-router.route('/groups/')
-    .post((req, res) => {
-        const students = [];
-        const faculty = [];
-
-        for (let i = 0; i < req.body.students.length; i++) {
-            students.push(req.body.students[i].toUpperCase());
-        }
-
-        for (let i = 0; i < req.body.faculty.length; i++) {
-            faculty.push(req.body.faculty[i].toUpperCase());
-        }
-
-        GROUP.create({
-            type: 'Group',
-            groupName: req.body.groupName,
-            term: req.body.term,
-            className: req.body.className,
-            students: students,
-            faculty: faculty
-        }, (err, group) => {
-            if (err) {
-                console.log(err);
-            } else {
-                res.json(group);
-            }
-        });
-    })
-    .delete((req, res) => {
-        if (req.body.id) {
-            GROUP.findByIdAndRemove(req.body.id, (err, book) => {
-                if (err) {
-                    console.log(err);
-                } else {
-                    res.status(204);
-                    res.json(null);
-                }
-            });
-        } else {
-            res.status(404);
-            console.log('ERROR, make sure to include all required fields');
-        }
-    });
-
-router.route('/groups/:username/:term/:id').get((req, res) => {
-    const term = req.params.term;
-
-    GROUP.aggregate([{
-                $match: {
-                    $and: [{
-                            students: req.params.username
-                        },
-                        {
-                            term: req.params.term
-
-                        },
-                        {
-                            _id: req.params.id
-                        }
-                    ]
-                }
-            },
-            {
-                $lookup: {
-                    from: "lookup",
-                    localField: "students",
-                    foreignField: "username",
-                    as: "studentsData"
-                }
-            }, {
-                $lookup: {
-                    from: "lookup",
-                    localField: "courses",
-                    foreignField: "name",
-                    as: "courseData"
-                }
-            }, {
-                $project: {
-                    name: 1,
-                    term: 1,
-                    students: {
-                        $filter: {
-                            input: '$students',
-                            as: 'students',
-                            cond: {
-                                $eq: ['$$students.term', term],
-                            }
-                        }
-                    },
-                    "terms.term": 1,
-                    courses: {
-                        $filter: {
-                            input: '$courseData',
-                            as: 'courses',
-                            cond: {
-                                $eq: ['$$courses.term', term]
-                            }
-                        }
-                    }
-                }
-            }
-        ],
-        (err, groups) => {
-            if (err) {
-                console.log(err);
-            } else {
-                res.status(200);
-                res.json(groups);
-            }
-        });
-});
-
-router.route('/term/:term').get((req, res) => {
-
-    TERM.find({
-        $and: [{
-                term: req.params.term
-            },
-            {
-                type: 'Term Info'
-            }
-        ]
-    }, (err, term) => {
-        if (err) {
-            console.log(err);
-        } else {
-            res.status(200);
-            res.json(term);
-        }
-    });
-});
-
+/* TODO */
 router.route('/faculty/:username').get((req, res) => {
     const username = req.params.username.toUpperCase();
 
@@ -259,94 +87,3 @@ router.route('/faculty/:username').get((req, res) => {
 });
 
 module.exports = router;
-
-/* generates a map of students and their advisors */
-router.route('/advisees/:term').get((req, res) => {
-    const term = req.params.term;
-
-    FACULTY.find({
-        $and: [{
-            type: 'Faculty'
-        }, {
-            term: term
-        }]
-    }, (err, faculty) => {
-        if (err) {
-            console.log('info to big');
-        } else {
-            let count = 0;
-            for (let i = 0; i < faculty.length; i++) {
-                const username = faculty[i].username;
-                const advisees = faculty[i].advisees;
-
-                for (let j = 0; j < advisees.length; j++) {
-                    const student = advisees[j];
-                    count++;
-                    if (this.s) {
-                        this.s.push({
-                            student: student,
-                            advisor: username
-                        });
-                    } else {
-                        this.s = [{
-                            student: student,
-                            advisor: username
-                        }];
-                    }
-                }
-            }
-
-            res.status(200);
-            res.json(this.s);
-        }
-    });
-});
-
-
-/* enters in the advisor field for each student, moved result to data.json */
-router.route('/students/:term').get((req, res) => {
-    const term = req.params.term;
-
-    STUDENT.find({
-        $and: [{
-            type: 'Student'
-        }, {
-            term: term
-        }]
-    }, (err, student) => {
-        if (err) {
-            console.log('info to big');
-        } else {
-            const newStudents = [];
-
-            for (let i = 0; i < student.length; i++) {
-                const curStudent = student[i];
-                let advisor = '';
-                
-                for (let j = 0; j < this.s.length; j++) {
-                    const obj = this.s[j];
-                    if (obj.student === curStudent.username) {
-                        advisor = obj.advisor;
-                        break;
-                    }
-                }
-
-                newStudents.push({
-                    type: curStudent.type,
-                    term: curStudent.term,
-                    advisor: advisor,
-                    username: curStudent.username,
-                    name: curStudent.name,
-                    year: curStudent.year,
-                    graduationDate: curStudent.graduationDate,
-                    courses: curStudent.courses,
-                    minors: curStudent.minors,
-                    majors: curStudent.majors
-                });
-            }
-
-            res.status(200);
-            res.json(newStudents);
-        }
-    });
-});
