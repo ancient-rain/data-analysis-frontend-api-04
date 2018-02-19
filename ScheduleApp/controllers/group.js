@@ -16,16 +16,9 @@ exports.getGroupById = function (req, res, next) {
     }, {
         $lookup: {
             from: 'lookup',
-            localField: 'students',
+            localField: 'members',
             foreignField: 'username',
             as: 'members'
-        }
-    }, {
-        $lookup: {
-            from: 'lookup',
-            localField: 'faculty',
-            foreignField: 'username',
-            as: 'facultyMembers'
         }
     }, {
         $lookup: {
@@ -42,14 +35,22 @@ exports.getGroupById = function (req, res, next) {
             as: "courseData"
         }
     }, {
+        $lookup: {
+            from: 'lookup',
+            localField: 'members.username',
+            foreignField: 'instructor',
+            as: 'facultyCourseData'
+        }
+    }, {
         $project: {
             termInfo: 1,
             type: 1,
             groupName: 1,
-            className: 1,
+            for: 1,
+            forClass: 1,
             courseData: 1,
             members: 1,
-            facultyMembers: 1
+            facultyCourseData: 1
         }
     }], (err, group) => {
         if (err) {
@@ -58,10 +59,10 @@ exports.getGroupById = function (req, res, next) {
             try {
                 const data = group[0];
                 const term = data.termInfo[0].termKey;
-                const students = getMembersGroupInfoTerm(data.members, term);
-                const faculty = getFacultyGroupInfoTerm(data.facultyMembers, term);
-                const courses = getCoursesGroupInfoTerm(data.courseData, students, term);
-                const newGroup = createGroupInfoTerm(data, term, students, faculty, courses);
+                const facultyCourses = getFacultyCourses(data.members, data.facultyCourseData, term);
+                const members = getMembersGroupInfoTerm(data.members, facultyCourses, term);
+                const courses = getCoursesGroupInfoTerm(data.courseData, members, term);
+                const newGroup = createGroupInfoTerm(data, term, members, courses);
 
                 res.status(200);
                 res.json([newGroup]);
@@ -72,14 +73,55 @@ exports.getGroupById = function (req, res, next) {
     });
 };
 
-function createGroupInfoTerm(data, term, students, faculty, courses) {
+exports.createGroup = function (req, res, next) {
+    const members = [];
+
+    for (let i = 0; i < req.body.members.length; i++) {
+        const member = req.body.members[i];
+        members.push(member.toUpperCase());
+    }
+
+    GROUP.create({
+        type: 'Group',
+        groupName: req.body.groupName,
+        term: req.body.term,
+        for: req.body.for,
+        forClass: req.body.forClass,
+        members: req.body.members
+    }, (err, group) => {
+        if (err) {
+            handleError(err, 'Bad request!', 400, next);
+        } else {
+            res.json(group);
+        }
+    });
+};
+
+exports.deleteGroup = function (req, res, next) {
+    const id = req.params.id;
+
+    if (id) {
+        GROUP.findByIdAndRemove(id, (err, book) => {
+            if (err) {
+                handleError(err, 'Server error!', 500, next);
+            } else {
+                res.status(204);
+                res.json(null);
+            }
+        });
+    } else {
+        handleError(err, 'Could not find group with request ID!', 404, next);
+    }
+};
+
+function createGroupInfoTerm(data, term, members, courses) {
     return {
         _id: data._id,
         groupName: data.groupName,
-        className: data.className,
+        for: data.for,
+        forClass: data.forClass,
         term: term,
-        students: students,
-        faculty: faculty,
+        members: members,
         courses: courses
     };
 }
@@ -116,45 +158,74 @@ function getTermName(key) {
     }
 }
 
-function getMembersGroupInfoTerm(members, term) {
+function getFacultyCourses(members, courses, term) {
+    const coursesArr = [];
+
+    for (let i = 0; i < members.length; i++) {
+        const member = members[i];
+
+        if (member.type === 'Faculty' && member.term === term) {
+            const listCourses = [];
+
+            for (let j = 0; j < courses.length; j++) {
+                const course = courses[j];
+
+                if (member.username === course.instructor && course.term === term) {
+                    listCourses.push(course.name);
+                }
+            }
+
+            coursesArr.push({
+                username: member.username,
+                courses: listCourses
+            });
+        }
+    }
+
+    return coursesArr;
+}
+
+function getMembersGroupInfoTerm(members, facultyCourses, term) {
     const memberArr = [];
 
     for (let i = 0; i < members.length; i++) {
         const member = members[i];
         if (member.term === term) {
-            const majorStr = createMajorsString(member.majors);
-            const minorStr = createMinorsString(member.minors);
-
-            memberArr.push({
-                username: member.username,
-                name: member.name,
-                year: member.year,
-                majors: majorStr,
-                minors: minorStr,
-                graduationDate: member.graduationDate,
-                courses: member.courses
-            });
+            if (member.type === 'Student') {
+                addStudent(member, memberArr);
+            } else {
+                addFaculty(member, facultyCourses, memberArr);
+            }
         }
     }
 
     return memberArr;
 }
 
-function getFacultyGroupInfoTerm(faculty, term) {
-    const facultyArr = [];
+function addStudent(member, memberArr) {
+    const majorStr = createMajorsString(member.majors);
+    const minorStr = createMinorsString(member.minors);
 
-    for (let i = 0; i < faculty.length; i++) {
-        const member = faculty[i];
-        if (member.term === term) {
-            facultyArr.push({
+    memberArr.push({
+        username: member.username,
+        name: member.name,
+        courses: member.courses
+    });
+}
+
+function addFaculty(member, facultyCourses, memberArr) {
+    for (let i = 0; i < facultyCourses.length; i++) {
+        const faculty = facultyCourses[i];
+
+        if (faculty.username === member.username) {
+            memberArr.push({
                 username: member.username,
                 name: member.name,
-                dept: member.dept,
+                courses: faculty.courses
             });
+            break;
         }
     }
-
-    return facultyArr;
 }
 
 function getCoursesGroupInfoTerm(courses, students, term) {
