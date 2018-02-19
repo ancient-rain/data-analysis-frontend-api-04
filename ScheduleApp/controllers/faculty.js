@@ -154,9 +154,9 @@ function getGroupsFacultyInfoTerm(groups, term) {
             groupsArr.push({
                 _id: group._id,
                 groupName: group.groupName,
-                className: group.className,
-                faculty: group.faculty,
-                students: group.students
+                members: group.members,
+                for: group.for,
+                forClass: group.forClass
             });
         }
     }

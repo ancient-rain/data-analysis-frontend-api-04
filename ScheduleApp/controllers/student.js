@@ -100,7 +100,7 @@ exports.getStudentInfoByTerm = function (req, res, next) {
         $lookup: {
             from: "lookup",
             localField: "username",
-            foreignField: "students",
+            foreignField: "members",
             as: "groups"
         }
     }, {
@@ -271,9 +271,9 @@ function getGroupsStudentInfoTerm(groups, term) {
             groupsArr.push({
                 _id: group._id,
                 groupName: group.groupName,
-                faculty: group.faculty,
-                students: group.students,
-                className: group.className
+                members: group.members,
+                for: group.for,
+                forClass: group.forClass
             });
         }
     }

@@ -209,7 +209,8 @@ function addStudent(member, memberArr) {
     memberArr.push({
         username: member.username,
         name: member.name,
-        courses: member.courses
+        courses: member.courses,
+        type: member.type
     });
 }
 
@@ -221,7 +222,8 @@ function addFaculty(member, facultyCourses, memberArr) {
             memberArr.push({
                 username: member.username,
                 name: member.name,
-                courses: faculty.courses
+                courses: faculty.courses,
+                type: member.type
             });
             break;
         }
