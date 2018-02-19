@@ -123,6 +123,7 @@ exports.getAllStudentsTaken = function (req, res, next) {
         } else {
             try {
                 takenStudents = usernames.values;
+                console.log(takenStudents);
                 if (takenStudents == null) {
                     handleError('Bad request!', res, 400, next);
                 } else {
@@ -289,6 +290,7 @@ exports.getAllStudentsNotTaken = function (req, res, next) {
 exports.getYearStudentsTaken = function (req, res, next) {
     const name = req.params.name.toUpperCase();
     const regex = new RegExp('.*' + name + '.*');
+    const year = parseInt(req.params.year);
     let takenStudents;
 
     STUDENT.db.db.command({
@@ -309,7 +311,7 @@ exports.getYearStudentsTaken = function (req, res, next) {
                     STUDENT.aggregate([{
                         $match: {
                             $and: [{
-                                year: req.params.year
+                                year: year
                             }, {
                                 username: {
                                     $in: takenStudents
@@ -334,7 +336,7 @@ exports.getYearStudentsTaken = function (req, res, next) {
                             try {
                                 const studentArray = [];
                                 const studentMap = {};
-                                console.log(students);
+
                                 for (let i = 0; i < students.length; i++) {
                                     const data = students[i];
 
@@ -364,8 +366,10 @@ exports.getYearStudentsTaken = function (req, res, next) {
 
 exports.getYearStudentsNotTaken = function (req, res, next) {
     const name = req.params.name.toUpperCase();
+    const year = parseInt(req.params.year);
     const regex = new RegExp('.*' + name + '.*');
     let major = name.substring(0, 2);
+
     if (major === 'CS') {
         major = ['CS', 'SE'];
     } else {
@@ -380,7 +384,7 @@ exports.getYearStudentsNotTaken = function (req, res, next) {
         key: 'username',
         query: {
             $and: [{
-                    year: req.params.year
+                    year: year
                 }, {
                     type: 'Student'
                 },
@@ -422,7 +426,7 @@ exports.getYearStudentsNotTaken = function (req, res, next) {
                     STUDENT.aggregate([{
                         $match: {
                             $and: [{
-                                year: req.params.year
+                                year: year
                             }, {
                                 username: {
                                     $in: returnStudents
