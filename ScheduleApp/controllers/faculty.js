@@ -108,6 +108,70 @@ exports.getFacultyInfoByTerm = function (req, res, next) {
     });
 };
 
+exports.getFacultyInfo = function (req, res, next) {
+    const username = req.params.username.toUpperCase();
+
+    FACULTY.aggregate([{
+        $match: {
+            username: username
+        }
+    }, {
+        $lookup: {
+            from: 'lookup',
+            localField: 'username',
+            foreignField: 'instructor',
+            as: 'courses'
+        }
+    }, {
+        $lookup: {
+            from: 'lookup',
+            localField: 'term',
+            foreignField: 'termKey',
+            as: 'term'
+        }
+    }, {
+        $project: {
+            username: 1,
+            name: 1,
+            dept: 1,
+            term: 1,
+            courses: 1
+        }
+    }], (err, facultyInfo) => {
+        if (err) {
+            handleError('Bad request!', res, 400, next);
+        } else {
+            try {
+                const newFacultyInfo = [];
+
+                for (let i = 0; i < facultyInfo.length; i++) {
+                    const faculty = facultyInfo[i];
+                    const term = faculty.term[0].termKey;
+                    const termInfo = getTermsFacultyInfoTerm(faculty.term);
+                    const courses = getCoursesFacultyInfo(faculty.courses, term);
+                    const info = createFacultyInfo(faculty, termInfo, courses);
+                    newFacultyInfo.push(info);
+                }
+
+                res.status(200);
+                res.json(newFacultyInfo);
+            } catch (error) {
+                handleError('Could not find faculty information', res, 404, next);
+            }
+        }
+    });
+};
+
+function createFacultyInfo(data, term, courses) {
+    return {
+        term: term,
+        username: data.username,
+        name: data.name,
+        dept: data.dept,
+        courses: courses
+    };
+}
+
 function createFacultyInfoTerm(data, terms, courses, groups, advisees) {
     return {
         term: data.term,
@@ -190,6 +254,25 @@ function getGroupMemberInfo(member, groupMembers, term) {
         }
     }
     return;
+}
+
+function getCoursesFacultyInfo(courses, term) {
+    const coursesArr = [];
+
+    for (let i = 0; i < courses.length; i++) {
+        const course = courses[i];
+        if (course.term === term) {
+            coursesArr.push({
+                name: course.name,
+                description: course.description,
+                creditHours: course.creditHours,
+                meetTimes: course.meetTimes,
+                instructor: course.instructor
+            });
+        }
+    }
+
+    return coursesArr;
 }
 
 function getCoursesFacultyInfoTerm(courses) {
