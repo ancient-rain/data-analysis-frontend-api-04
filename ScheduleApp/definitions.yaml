@@ -15,6 +15,37 @@ definitions:
         type: string
       intructor:
         type: string
+  CourseInfo:
+    properties:
+      name:
+        type: string
+      terms:
+        type: array
+        items:
+          type: string
+      description:
+        type: string
+      creditHours:
+        type: string
+      meetTimes:
+        type: string
+      filteredTime:
+        type: string
+      numStudents:
+        type: number
+      instructor:
+        type: array
+        items:
+          $ref: "#/definitions/Instructor"
+      students:
+        type: array
+        items:
+          $ref: "#/definitions/Student"
+  CourseInfoListStudents:
+    properties:
+      type: array
+      items:
+        $ref: "#/definitions/Student"
   Faculty:
     properties:
       type:
@@ -31,6 +62,18 @@ definitions:
         type: array
         items:
           type: string
+  FacultyInfo:
+    properties:
+      username:
+        type: string
+      name:
+        type: string
+      dept:
+        type: string
+      term:
+        type: array
+        items:
+          Term
   FacultyInfoTerm:
     properties:
       term:
@@ -49,6 +92,62 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/Student"
+  Group:
+    properties:
+      type:
+        type: string
+      groupName:
+        type: string
+        required: true
+      term:
+        type: string
+        required: true
+      description:
+        type: string
+        required: true
+      forClass:
+        type: boolean
+        required: true
+      members:
+        type: array
+        items:
+          type: string
+  GroupInfo:
+    properties:
+      groupName:
+        type: string
+        required: true
+      term:
+        type: string
+        required: true
+      description:
+        type: string
+        required: true
+      forClass:
+        type: boolean
+        required: true
+      members:
+        type: array
+        items:
+          $ref: "#/definitions/GroupMembers"
+  GroupMembers:
+    properties:
+      username:
+        type: string
+      name:
+        type: string
+      courses:
+        type: array
+        items:
+          type: string
+      type:
+        type: string
+  Instructor:
+    properties:
+      username:
+        type: string
+      dept:
+        type: string
   Student:
     properties:
       term:
@@ -73,6 +172,18 @@ definitions:
         type: array
         items:
           type: string
+  StudentInfo:
+    properties:
+      username:
+        type: string
+      name:
+        type: string
+      graduationDate:
+        type: string
+      term:
+        type: array
+        items:
+          Term
   StudentInfoTerm:
     properties:
       type:

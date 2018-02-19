@@ -68,6 +68,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', schedules);
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+
 app.get('/swagger.json', function (req, res) {
   res.setHeader('Content-Type', 'application/json');
   res.send(swaggerSpec);
