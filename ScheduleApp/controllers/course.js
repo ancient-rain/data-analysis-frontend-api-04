@@ -126,7 +126,8 @@ exports.getCourseInfo = function (req, res, next) {
 
 exports.getAllStudentsTaken = function (req, res, next) {
     const name = req.params.name.toUpperCase();
-    const regex = new RegExp('.*' + name + '.*');
+    const name1 = name.split('-')[0];
+    const regex = new RegExp('.*' + name1 + '.*');
     let takenStudents;
 
     STUDENT.db.db.command({
@@ -206,7 +207,8 @@ exports.getAllStudentsTaken = function (req, res, next) {
 
 exports.getAllStudentsNotTaken = function (req, res, next) {
     const name = req.params.name.toUpperCase();
-    const regex = new RegExp('.*' + name + '.*');
+    const name1 = name.split('-')[0];
+    const regex = new RegExp('.*' + name1 + '.*');
     let major = name.substring(0, 2);
     if (major === 'CS') {
         major = ['CS', 'SE'];
