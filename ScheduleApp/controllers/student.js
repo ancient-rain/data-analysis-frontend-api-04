@@ -288,7 +288,7 @@ function getGroupsStudentInfoTerm(groups, groupMembers, term) {
                 _id: group._id,
                 groupName: group.groupName,
                 members: members,
-                for: group.for,
+                description: group.description,
                 forClass: group.forClass
             });
         }

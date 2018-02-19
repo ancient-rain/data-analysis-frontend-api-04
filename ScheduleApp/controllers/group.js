@@ -46,7 +46,7 @@ exports.getGroupById = function (req, res, next) {
             termInfo: 1,
             type: 1,
             groupName: 1,
-            for: 1,
+            description: 1,
             forClass: 1,
             courseData: 1,
             members: 1,
@@ -80,19 +80,18 @@ exports.createGroup = function (req, res, next) {
         const member = req.body.members[i];
         members.push(member.toUpperCase());
     }
-
+    console.log(req.body);
     GROUP.create({
         type: 'Group',
         groupName: req.body.groupName,
         term: req.body.term,
-        for: req.body.for,
+        description: req.body.description,
         forClass: req.body.forClass,
         members: req.body.members
     }, (err, group) => {
         if (err) {
             handleError(err, 'Bad request!', 400, next);
         } else {
-            res.json(200);
             res.json(group);
         }
     });
@@ -119,7 +118,7 @@ function createGroupInfoTerm(data, term, members, courses) {
     return {
         _id: data._id,
         groupName: data.groupName,
-        for: data.for,
+        description: data.description,
         forClass: data.forClass,
         term: term,
         members: members,
@@ -290,7 +289,6 @@ function createMinorsString(minors) {
 }
 
 function handleError(err, res, statusCode, next) {
-    res.status(statusCode);
     err.status = statusCode;
     console.log(err);
     next(err);
