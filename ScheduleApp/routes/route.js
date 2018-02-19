@@ -10,6 +10,8 @@ const studentController = require('../controllers/student');
 const facultyController = require('../controllers/faculty');
 const courseController = require('../controllers/course');
 const groupController = require('../controllers/group');
+const f = [];
+let s = [];
 
 router.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -256,3 +258,94 @@ router.route('/faculty/:username').get((req, res) => {
 });
 
 module.exports = router;
+
+/* generates a map of students and their advisors */
+router.route('/advisees/:term').get((req, res) => {
+    const term = req.params.term;
+
+    FACULTY.find({
+        $and: [{
+            type: 'Faculty'
+        }, {
+            term: term
+        }]
+    }, (err, faculty) => {
+        if (err) {
+            console.log('info to big');
+        } else {
+            let count = 0;
+            for (let i = 0; i < faculty.length; i++) {
+                const username = faculty[i].username;
+                const advisees = faculty[i].advisees;
+
+                for (let j = 0; j < advisees.length; j++) {
+                    const student = advisees[j];
+                    count++;
+                    if (this.s) {
+                        this.s.push({
+                            student: student,
+                            advisor: username
+                        });
+                    } else {
+                        this.s = [{
+                            student: student,
+                            advisor: username
+                        }];
+                    }
+                }
+            }
+
+            res.status(200);
+            res.json(this.s);
+        }
+    });
+});
+
+
+/* enters in the advisor field for each student, moved result to data.json */
+router.route('/students/:term').get((req, res) => {
+    const term = req.params.term;
+
+    STUDENT.find({
+        $and: [{
+            type: 'Student'
+        }, {
+            term: term
+        }]
+    }, (err, student) => {
+        if (err) {
+            console.log('info to big');
+        } else {
+            const newStudents = [];
+
+            for (let i = 0; i < student.length; i++) {
+                const curStudent = student[i];
+                let advisor = '';
+                
+                for (let j = 0; j < this.s.length; j++) {
+                    const obj = this.s[j];
+                    if (obj.student === curStudent.username) {
+                        advisor = obj.advisor;
+                        break;
+                    }
+                }
+
+                newStudents.push({
+                    type: curStudent.type,
+                    term: curStudent.term,
+                    advisor: advisor,
+                    username: curStudent.username,
+                    name: curStudent.name,
+                    year: curStudent.year,
+                    graduationDate: curStudent.graduationDate,
+                    courses: curStudent.courses,
+                    minors: curStudent.minors,
+                    majors: curStudent.majors
+                });
+            }
+
+            res.status(200);
+            res.json(newStudents);
+        }
+    });
+});
