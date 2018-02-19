@@ -91,7 +91,6 @@ function getTermsGroupInfoTerm(terms) {
         const term = terms[i];
         const termName = getTermName(term.termKey);
         termsArr.push({
-            _id: term._id,
             term: term.termKey,
             name: termName,
             startDate: term.startDate,
@@ -127,7 +126,6 @@ function getMembersGroupInfoTerm(members, term) {
             const minorStr = createMinorsString(member.minors);
 
             memberArr.push({
-                _id: member._id,
                 username: member.username,
                 name: member.name,
                 year: member.year,
@@ -149,7 +147,6 @@ function getFacultyGroupInfoTerm(faculty, term) {
         const member = faculty[i];
         if (member.term === term) {
             facultyArr.push({
-                _id: member._id,
                 username: member.username,
                 name: member.name,
                 dept: member.dept,

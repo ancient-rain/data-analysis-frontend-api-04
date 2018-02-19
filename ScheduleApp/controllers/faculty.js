@@ -102,7 +102,6 @@ exports.getFacultyInfoByTerm = function (req, res, next) {
 
 function createFacultyInfoTerm(data, terms, courses, groups, advisees) {
     return {
-        _id: data._id,
         term: data.term,
         name: data.name,
         username: data.username,
@@ -121,7 +120,6 @@ function getTermsFacultyInfoTerm(terms) {
         const term = terms[i];
         const termName = getTermName(term.termKey);
         termsArr.push({
-            _id: term._id,
             term: term.termKey,
             name: termName,
             startDate: term.startDate,
@@ -172,7 +170,6 @@ function getCoursesFacultyInfoTerm(courses) {
     for (let i = 0; i < courses.length; i++) {
         const course = courses[i];
         coursesArr.push({
-            _id: course._id,
             name: course.name,
             term: course.term,
             description: course.description,
@@ -193,14 +190,13 @@ function getAdvisessFacultyInfoTerm(advisees) {
         const majorStr = createMajorsString(advisee.majors);
         const minorStr = createMinorsString(advisee.minors);
         adviseesArr.push({
-            _id: advisee._id,
             term: advisee.term,
             name: advisee.name,
             username: advisee.username,
             year: advisee.year,
             majors: majorStr,
             minors: minorStr,
-            graduationDate: advisee.graduationDate
+            graduationDate: advisee.graduationDate,
         });
     }
 
