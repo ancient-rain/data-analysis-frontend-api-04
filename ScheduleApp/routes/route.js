@@ -58,11 +58,11 @@ router.get('/course/:name/students-not-taken/all', courseController.getAllStuden
 
 router.get('/course/:name/students-not-taken/:year', courseController.getYearStudentsNotTaken);
 
-router.route('/group/:id').get(groupController.getGroupById);
+router.get('/group/:id', groupController.getGroupById);
 
-router.route('/group/:id').delete(groupController.deleteGroup);
+router.delete('/group/:id', groupController.deleteGroup);
 
-router.route('/group').post(groupController.createGroup);
+router.post('/group', groupController.createGroup);
 
 
 

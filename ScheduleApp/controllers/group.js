@@ -92,6 +92,7 @@ exports.createGroup = function (req, res, next) {
         if (err) {
             handleError(err, 'Bad request!', 400, next);
         } else {
+            res.json(200);
             res.json(group);
         }
     });
