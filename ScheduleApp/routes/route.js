@@ -48,6 +48,8 @@ router.get('/student/:username', studentController.getStudentInfo);
 
 router.get('/faculty/:username/:term', facultyController.getFacultyInfoByTerm);
 
+router.get('/faculty/:username', facultyController.getFacultyInfo);
+
 router.get('/course/:name/:term', courseController.getCourseInfo);
 
 router.get('/course/:name/students-taken/all', courseController.getAllStudentsTaken);
