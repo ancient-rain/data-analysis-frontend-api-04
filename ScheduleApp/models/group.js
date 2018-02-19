@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-
 const groupSchema = new mongoose.Schema({
     type: {
         type: String
@@ -9,19 +8,19 @@ const groupSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    className: {
-        type: String,
-        required: true
-    },
     term: {
         type: String,
         required: true
     },
-    students: {
-        type: [String],
+    for: {
+        type: String,
         required: true
     },
-    faculty: {
+    forClass: {
+        type: Boolean,
+        required: true
+    },
+    members: {
         type: [String],
         required: true
     }

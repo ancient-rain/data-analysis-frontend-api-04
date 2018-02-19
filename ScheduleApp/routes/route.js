@@ -113,24 +113,20 @@ router.get('/student/:username/:term/advisor', function (req, res) {
 
 router.route('/groups/')
     .post((req, res) => {
-        const students = [];
-        const faculty = [];
+        const members = [];
 
-        for (let i = 0; i < req.body.students.length; i++) {
-            students.push(req.body.students[i].toUpperCase());
-        }
-
-        for (let i = 0; i < req.body.faculty.length; i++) {
-            faculty.push(req.body.faculty[i].toUpperCase());
+        for (let i = 0; i < req.body.members.length; i++) {
+            const member = req.body.members[i];
+            members.push(member.toUpperCase());
         }
 
         GROUP.create({
             type: 'Group',
             groupName: req.body.groupName,
             term: req.body.term,
-            className: req.body.className,
-            students: students,
-            faculty: faculty
+            for: req.body.for,
+            forClass: req.body.forClass,
+            members: req.body.members
         }, (err, group) => {
             if (err) {
                 console.log(err);
