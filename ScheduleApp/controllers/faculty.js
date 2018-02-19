@@ -27,7 +27,7 @@ exports.getFacultyInfoByTerm = function (req, res, next) {
             foreignField: 'username',
             as: 'facultyTerms'
         }
-    },  {
+    }, {
         $lookup: {
             from: 'lookup',
             localField: 'facultyTerms.term',
@@ -41,12 +41,19 @@ exports.getFacultyInfoByTerm = function (req, res, next) {
             foreignField: 'username',
             as: 'students'
         }
-    },  {
+    }, {
         $lookup: {
             from: "lookup",
             localField: "username",
-            foreignField: "faculty",
+            foreignField: "members",
             as: "groups"
+        }
+    }, {
+        $lookup: {
+            from: "lookup",
+            localField: "groups.members",
+            foreignField: "username",
+            as: "groupMembers"
         }
     }, {
         $project: {
@@ -56,6 +63,7 @@ exports.getFacultyInfoByTerm = function (req, res, next) {
             dept: 1,
             terms: 1,
             groups: 1,
+            groupMembers: 1,
             courses: {
                 $filter: {
                     input: '$courses',
@@ -86,7 +94,7 @@ exports.getFacultyInfoByTerm = function (req, res, next) {
             try {
                 const data = faculty[0];
                 const terms = getTermsFacultyInfoTerm(data.terms);
-                const groups = getGroupsFacultyInfoTerm(data.groups, data.term);
+                const groups = getGroupsFacultyInfoTerm(data.groups, data.groupMembers, data.term);
                 const courses = getCoursesFacultyInfoTerm(data.courses);
                 const advisees = getAdvisessFacultyInfoTerm(data.advisees);
                 const newFaculty = createFacultyInfoTerm(data, terms, courses, groups, advisees);
@@ -133,7 +141,7 @@ function getTermsFacultyInfoTerm(terms) {
 function getTermName(key) {
     const year = key.substring(0, 4);
     const term = key.substring(4);
-    switch(term) {
+    switch (term) {
         case '10':
             return `Fall ${year}`;
         case '20':
@@ -145,16 +153,24 @@ function getTermName(key) {
     }
 }
 
-function getGroupsFacultyInfoTerm(groups, term) {
+function getGroupsFacultyInfoTerm(groups, groupMembers, term) {
     const groupsArr = [];
-    
+
     for (let i = 0; i < groups.length; i++) {
         const group = groups[i];
         if (group.term === term) {
+            const members = [];
+
+            for (let j = 0; j < group.members.length; j++) {
+                const member = group.members[j];
+                const info = getGroupMemberInfo(member, groupMembers, term);
+                members.push(info);
+            }
+
             groupsArr.push({
                 _id: group._id,
                 groupName: group.groupName,
-                members: group.members,
+                members: members,
                 for: group.for,
                 forClass: group.forClass
             });
@@ -162,6 +178,18 @@ function getGroupsFacultyInfoTerm(groups, term) {
     }
 
     return groupsArr;
+}
+
+function getGroupMemberInfo(member, groupMembers, term) {
+    for (let i = 0; i < groupMembers.length; i++) {
+        if (member === groupMembers[i].username && term === groupMembers[i].term) {
+            return {
+                username: member,
+                type: groupMembers[i].type
+            };
+        }
+    }
+    return;
 }
 
 function getCoursesFacultyInfoTerm(courses) {

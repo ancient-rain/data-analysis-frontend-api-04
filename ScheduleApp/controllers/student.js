@@ -104,6 +104,13 @@ exports.getStudentInfoByTerm = function (req, res, next) {
             as: "groups"
         }
     }, {
+        $lookup: {
+            from: "lookup",
+            localField: "groups.members",
+            foreignField: "username",
+            as: "groupMembers"
+        }
+    }, {
         $project: {
             term: 1,
             username: 1,
@@ -114,6 +121,7 @@ exports.getStudentInfoByTerm = function (req, res, next) {
             majors: 1,
             advisor: 1,
             groups: 1,
+            groupMembers: 1,
             terms: 1,
             courses: {
                 $filter: {
@@ -133,7 +141,7 @@ exports.getStudentInfoByTerm = function (req, res, next) {
                 const data = student[0];
                 const terms = getTermsStudentInfoTerm(data.terms);
                 const courses = getCoursesStudentInfoTerm(data.courses);
-                const groups = getGroupsStudentInfoTerm(data.groups, data.term);
+                const groups = getGroupsStudentInfoTerm(data.groups, data.groupMembers, data.term);
                 const majorStr = createMajorsString(data.majors);
                 const minorStr = createMinorsString(data.minors);
                 const newStudent = createStudentInfoTerm(data, terms, groups, courses, majorStr, minorStr);
@@ -262,16 +270,24 @@ function getTermName(key) {
     }
 }
 
-function getGroupsStudentInfoTerm(groups, term) {
+function getGroupsStudentInfoTerm(groups, groupMembers, term) {
     const groupsArr = [];
 
     for (let i = 0; i < groups.length; i++) {
         const group = groups[i];
         if (group.term === term) {
+            const members = [];
+
+            for (let j = 0; j < group.members.length; j++) {
+                const member = group.members[j];
+                const info = getGroupMemberInfo(member, groupMembers, term);
+                members.push(info);
+            }
+
             groupsArr.push({
                 _id: group._id,
                 groupName: group.groupName,
-                members: group.members,
+                members: members,
                 for: group.for,
                 forClass: group.forClass
             });
@@ -279,6 +295,18 @@ function getGroupsStudentInfoTerm(groups, term) {
     }
 
     return groupsArr;
+}
+
+function getGroupMemberInfo(member, groupMembers, term) {
+    for (let i = 0; i < groupMembers.length; i++) {
+        if (member === groupMembers[i].username && term === groupMembers[i].term) {
+            return {
+                username: member,
+                type: groupMembers[i].type
+            };
+        }
+    }
+    return;
 }
 
 function getCoursesStudentInfo(courses, term) {
